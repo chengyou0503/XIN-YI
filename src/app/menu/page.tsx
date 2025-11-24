@@ -24,9 +24,10 @@ function MenuPage() {
     const [isSuccess, setIsSuccess] = useState(false);
 
     useEffect(() => {
-        // Load menu from LocalStorage
-        const items = StorageService.getMenu();
-        setMenuItems(items);
+        // Load menu from Firestore
+        StorageService.getMenu().then(items => {
+            setMenuItems(items);
+        });
     }, []);
 
     const filteredItems = menuItems.filter(item => item.category === activeCategory);

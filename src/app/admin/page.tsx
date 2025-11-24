@@ -30,48 +30,35 @@ export default function AdminPage() {
         });
     };
 
-    const loadData = () => {
-        const loadedOrders = StorageService.getOrders();
-        setOrders(loadedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-
-        const loadedMenu = StorageService.getMenu();
-        setMenuItems(loadedMenu);
-
-        if (!isFirstLoad.current && loadedOrders.length > previousOrderCountRef.current) {
-            playNotificationSound();
-        }
-
-        previousOrderCountRef.current = loadedOrders.length;
-        isFirstLoad.current = false;
-    };
+    // No longer needed - using real-time subscriptions
 
     useEffect(() => {
-        loadData();
+        // Subscribe to real-time orders updates
+        const unsubscribeOrders = StorageService.subscribeToOrders((newOrders) => {
+            setOrders(newOrders);
 
-        const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === 'stir_fry_orders' || e.key === 'stir_fry_menu') {
-                loadData();
+            // Play notification sound for new orders
+            if (!isFirstLoad.current && newOrders.length > previousOrderCountRef.current) {
+                playNotificationSound();
             }
-        };
 
-        const handleCustomUpdate = () => {
-            loadData();
-        };
+            previousOrderCountRef.current = newOrders.length;
+            isFirstLoad.current = false;
+        });
 
-        window.addEventListener('storage', handleStorageChange);
-        window.addEventListener('storage-update', handleCustomUpdate);
-
-        const interval = setInterval(loadData, 5000);
+        // Subscribe to real-time menu updates
+        const unsubscribeMenu = StorageService.subscribeToMenu((newMenu) => {
+            setMenuItems(newMenu);
+        });
 
         return () => {
-            window.removeEventListener('storage', handleStorageChange);
-            window.removeEventListener('storage-update', handleCustomUpdate);
-            clearInterval(interval);
+            unsubscribeOrders();
+            unsubscribeMenu();
         };
     }, []);
 
-    const updateStatus = (orderId: string, status: Order['status']) => {
-        StorageService.updateOrderStatus(orderId, status);
+    const updateStatus = async (orderId: string, status: Order['status']) => {
+        await StorageService.updateOrderStatus(orderId, status);
     };
 
     const handleClearOrders = () => {
@@ -83,23 +70,25 @@ export default function AdminPage() {
     };
 
     // Menu Management Functions
-    const handleSaveItem = (e: React.FormEvent) => {
+    const handleSaveItem = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingItem) return;
 
-        const updatedMenu = isAddingNew
-            ? [...menuItems, editingItem]
-            : menuItems.map(item => item.id === editingItem.id ? editingItem : item);
-
-        StorageService.saveMenu(updatedMenu);
+        const updatedMenu = menuItems.map(m => m.id === editingItem.id ? editingItem : m);
+        if (isAddingNew && !menuItems.find(m => m.id === editingItem.id)) {
+            updatedMenu.push(editingItem);
+        }
+        setMenuItems(updatedMenu);
+        await StorageService.saveMenu(updatedMenu);
         setEditingItem(null);
         setIsAddingNew(false);
     };
 
-    const handleDeleteItem = (id: string) => {
+    const handleDeleteItem = async (id: string) => {
         if (confirm('確定要刪除此餐點嗎？')) {
             const updatedMenu = menuItems.filter(item => item.id !== id);
-            StorageService.saveMenu(updatedMenu);
+            setMenuItems(updatedMenu);
+            await StorageService.saveMenu(updatedMenu);
         }
     };
 
@@ -139,7 +128,7 @@ export default function AdminPage() {
         }
     };
 
-    const handleDeleteItemFromOrder = (order: Order, itemIndex: number) => {
+    const handleDeleteItemFromOrder = async (order: Order, itemIndex: number) => {
         if (!confirm(`確定要刪除 ${order.items[itemIndex].name} 嗎？`)) return;
 
         const newItems = [...order.items];
@@ -148,20 +137,26 @@ export default function AdminPage() {
         if (newItems.length === 0) {
             // If no items left, ask to delete the order
             if (confirm('此訂單已無品項，是否刪除整筆訂單？')) {
-                StorageService.deleteOrder(order.id);
-                return;
+                await StorageService.deleteOrder(order.id);
             }
+            return;
         }
 
+        // Recalculate total
         const newTotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const updatedOrder = { ...order, items: newItems, totalAmount: newTotal };
-        StorageService.saveOrder(updatedOrder);
+
+        const updatedOrder: Order = {
+            ...order,
+            items: newItems,
+            totalAmount: newTotal,
+        };
+
+        await StorageService.saveOrder(updatedOrder);
     };
 
-    const handleDeleteHistoryOrder = (orderId: string) => {
-        if (confirm('確定要刪除此筆歷史訂單紀錄嗎？')) {
-            StorageService.deleteOrder(orderId);
-        }
+    const handleDeleteHistoryOrder = async (orderId: string) => {
+        if (!confirm('確定要刪除此筆歷史訂單紀錄嗎？')) return;
+        await StorageService.deleteOrder(orderId);
     };
 
     // Filter orders for active view (exclude served/history)
