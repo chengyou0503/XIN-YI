@@ -6,7 +6,7 @@ const config = {
     channelSecret: process.env.CHANNEL_SECRET || '',
 };
 
-const client = new line.Client(config);
+// Client initialization moved to POST handler to prevent build errors when env vars are missing
 
 export async function POST(req: NextRequest) {
     try {
@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
             console.warn('LINE Channel Access Token is missing. Skipping message send.');
             return NextResponse.json({ success: true, message: 'Simulated push (no token)' });
         }
+
+        const client = new line.Client(config);
 
         // Construct Flex Message
         const flexMessage: line.FlexMessage = {
