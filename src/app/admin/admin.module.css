@@ -24,6 +24,7 @@
     align-items: center;
     gap: 0.5rem;
     margin: 0;
+    white-space: nowrap;
 }
 
 .nav {
@@ -611,8 +612,8 @@
     }
 
     .title {
-        font-size: 1.8rem;
-        gap: 0.6rem;
+        font-size: 1.6rem;
+        gap: 0.5rem;
     }
 
     .headerActions {
