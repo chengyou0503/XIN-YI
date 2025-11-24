@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Order, MenuItem } from '@/types';
-import { CheckCircle, DollarSign, ChefHat, RefreshCw, Trash2, Utensils, Edit, Plus, X, Save, QrCode } from 'lucide-react';
+import { CheckCircle, DollarSign, ChefHat, RefreshCw, Trash2, Utensils, Edit, Plus, X, Save, QrCode, Upload } from 'lucide-react';
 import { StorageService } from '@/lib/storage';
+import { ImageUploadService } from '@/lib/imageUpload';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
@@ -18,6 +19,7 @@ export default function AdminPage() {
     // Menu Editing State
     const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
     const [isAddingNew, setIsAddingNew] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
@@ -115,7 +117,7 @@ export default function AdminPage() {
             id: Date.now().toString(),
             name: '',
             price: 0,
-            category: 'stir-fry',
+            category: '熱炒類',
             imageUrl: '/placeholder.jpg',
             description: '',
             available: true
@@ -123,6 +125,34 @@ export default function AdminPage() {
         setIsAddingNew(true);
     };
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !editingItem) return;
+
+        try {
+            // Validate image
+            ImageUploadService.validateImage(file);
+
+            setIsUploading(true);
+
+            // Upload to Firebase Storage
+            const imagePath = `menu-items/${editingItem.id}-${Date.now()}`;
+            const imageUrl = await ImageUploadService.uploadImage(file, imagePath);
+
+            // Update editing item with new image URL
+            setEditingItem({
+                ...editingItem,
+                imageUrl,
+            });
+
+            console.log('✅ 圖片上傳成功:', imageUrl);
+        } catch (error) {
+            console.error('圖片上傳失敗:', error);
+            alert(error instanceof Error ? error.message : '圖片上傳失敗');
+        } finally {
+            setIsUploading(false);
+        }
+    };
     const getStatusColor = (status: Order['status']) => {
         switch (status) {
             case 'pending': return '#9E9E9E'; // Grey
@@ -357,29 +387,61 @@ export default function AdminPage() {
                                             />
                                         </label>
                                         <label>
-                                            分類:
-                                            <select
-                                                value={editingItem.category}
-                                                onChange={e => setEditingItem({ ...editingItem, category: e.target.value as any })}
-                                            >
-                                                <option value="stir-fry">熱炒類</option>
-                                                <option value="vegetable">青菜類</option>
-                                                <option value="soup">湯類</option>
-                                                <option value="rice">飯麵類</option>
-                                                <option value="beverage">飲料</option>
+                                            類別
+                                            <select value={editingItem.category} onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value as any })}>
+                                                <option value="熱炒類">熱炒類</option>
+                                                <option value="湯品類">湯品類</option>
+                                                <option value="麵飯類">麵飯類</option>
+                                                <option value="小菜類">小菜類</option>
+                                                <option value="飲品類">飲品類</option>
                                             </select>
                                         </label>
+
                                         <label>
-                                            圖片連結:
-                                            <input
-                                                type="text"
-                                                value={editingItem.imageUrl}
-                                                onChange={e => setEditingItem({ ...editingItem, imageUrl: e.target.value })}
-                                            />
+                                            圖片
+                                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                                {editingItem.imageUrl && editingItem.imageUrl !== '/placeholder.jpg' && (
+                                                    <img
+                                                        src={editingItem.imageUrl}
+                                                        alt="預覽"
+                                                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }}
+                                                        onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.jpg'}
+                                                    />
+                                                )}
+                                                <label htmlFor="image-upload" style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    padding: '0.8rem 1.2rem',
+                                                    backgroundColor: isUploading ? '#95a5a6' : '#3498db',
+                                                    color: 'white',
+                                                    borderRadius: '8px',
+                                                    cursor: isUploading ? 'not-allowed' : 'pointer',
+                                                    fontSize: '0.95rem',
+                                                    fontWeight: '600',
+                                                }}>
+                                                    <Upload size={18} />
+                                                    {isUploading ? '上傳中...' : editingItem.imageUrl === '/placeholder.jpg' ? '上傳圖片' : '更換圖片'}
+                                                </label>
+                                                <input
+                                                    id="image-upload"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleImageUpload}
+                                                    disabled={isUploading}
+                                                    style={{ display: 'none' }}
+                                                />
+                                            </div>
+                                            <small style={{ color: '#7f8c8d', marginTop: '0.5rem', display: 'block' }}>
+                                                支援 JPG, PNG, WebP, GIF。檔案大小不超過 5MB
+                                            </small>
                                         </label>
-                                        <div className={styles.formActions}>
-                                            <button type="button" onClick={() => setEditingItem(null)} className={styles.cancelBtn}>取消</button>
-                                            <button type="submit" className={styles.saveBtn}>儲存</button>
+
+                                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                                            <button type="button" onClick={() => { setEditingItem(null); setIsAddingNew(false); }} className={styles.cancelBtn}>取消</button>
+                                            <button type="submit" className={styles.saveBtn} disabled={isUploading}>
+                                                {isUploading ? '請等待圖片上傳...' : '儲存'}
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
