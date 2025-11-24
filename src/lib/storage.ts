@@ -49,12 +49,11 @@ export class StorageService {
         }
     }
 
-    static async initializeMenu() {
+    static async initializeMenu(): Promise<void> {
         try {
-            const batch = MOCK_MENU.map(item =>
-                setDoc(doc(db, COLLECTIONS.MENU, item.id), item)
-            );
-            await Promise.all(batch);
+            console.log('📝 Initializing menu with', MOCK_MENU.length, 'items...');
+            await this.saveMenu(MOCK_MENU);
+            console.log('✅ Menu initialized successfully');
         } catch (error) {
             console.error('Error initializing menu:', error);
         }

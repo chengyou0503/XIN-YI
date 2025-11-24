@@ -7,6 +7,7 @@ import { CheckCircle, DollarSign, ChefHat, RefreshCw, Trash2, Utensils, Edit, Pl
 import { StorageService } from '@/lib/storage';
 import { ImageUploadService } from '@/lib/imageUpload';
 import { AdminAuthService } from '@/lib/adminAuth';
+import { CATEGORIES } from '@/lib/mockData';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
@@ -41,14 +42,27 @@ export default function AdminPage() {
 
     // No longer needed - using real-time subscriptions
 
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
+
     useEffect(() => {
-        // Check authentication first
-        if (!AdminAuthService.isAuthenticated()) {
-            router.push('/admin/login');
-            return;
+        // Check authentication first (must be client-side)
+        if (typeof window !== 'undefined') {
+            if (!AdminAuthService.isAuthenticated()) {
+                router.push('/admin/login');
+                return;
+            }
+            setIsAuthLoading(false);
         }
 
         console.log('🔥 設定 Firestore 即時監聽...');
+
+        // Ensure menu is initialized if empty
+        StorageService.getMenu().then((items) => {
+            if (items.length === 0) {
+                console.log('⚠️ Menu is empty, attempting to initialize...');
+                StorageService.initializeMenu();
+            }
+        });
 
         // Subscribe to real-time orders updates
         const unsubscribeOrders = StorageService.subscribeToOrders((newOrders) => {
@@ -78,6 +92,24 @@ export default function AdminPage() {
             unsubscribeMenu();
         };
     }, [router]);
+
+    if (isAuthLoading) {
+        return (
+            <div style={{
+                height: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                background: '#f8f9fa',
+                color: '#666',
+                flexDirection: 'column',
+                gap: '1rem'
+            }}>
+                <div className={styles.spinner}></div>
+                <p>正在驗證權限...</p>
+            </div>
+        );
+    }
 
     const updateStatus = async (orderId: string, status: Order['status']) => {
         await StorageService.updateOrderStatus(orderId, status);
@@ -386,7 +418,14 @@ export default function AdminPage() {
                                     {order.items.map((item, idx) => (
                                         <li key={idx}>
                                             <span className={styles.qty}>{item.quantity}</span>
-                                            <span className={styles.name}>{item.name}</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span className={styles.name}>{item.name}</span>
+                                                {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                    <small style={{ color: '#e74c3c', fontSize: '0.9rem' }}>
+                                                        {item.selectedOptions.map(o => o.name).join(', ')}
+                                                    </small>
+                                                )}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -441,12 +480,14 @@ export default function AdminPage() {
                                         </label>
                                         <label>
                                             類別
-                                            <select value={editingItem.category} onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value as any })}>
-                                                <option value="熱炒類">熱炒類</option>
-                                                <option value="湯品類">湯品類</option>
-                                                <option value="麵飯類">麵飯類</option>
-                                                <option value="小菜類">小菜類</option>
-                                                <option value="飲品類">飲品類</option>
+                                            <select
+                                                value={editingItem.category}
+                                                onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value as any })}
+                                                required
+                                            >
+                                                {CATEGORIES.map(cat => (
+                                                    <option key={cat} value={cat}>{cat}</option>
+                                                ))}
                                             </select>
                                         </label>
 
@@ -465,16 +506,15 @@ export default function AdminPage() {
                                                     display: 'inline-flex',
                                                     alignItems: 'center',
                                                     gap: '0.5rem',
-                                                    padding: '0.8rem 1.2rem',
-                                                    backgroundColor: isUploading ? '#95a5a6' : '#3498db',
+                                                    padding: '0.5rem 1rem',
+                                                    backgroundColor: isUploading ? '#bdc3c7' : '#3498db',
                                                     color: 'white',
                                                     borderRadius: '8px',
                                                     cursor: isUploading ? 'not-allowed' : 'pointer',
-                                                    fontSize: '0.95rem',
-                                                    fontWeight: '600',
+                                                    fontSize: '0.9rem'
                                                 }}>
-                                                    <Upload size={18} />
-                                                    {isUploading ? '上傳中...' : editingItem.imageUrl === '/placeholder.jpg' ? '上傳圖片' : '更換圖片'}
+                                                    <Upload size={16} />
+                                                    {isUploading ? '上傳中...' : '上傳圖片'}
                                                 </label>
                                                 <input
                                                     id="image-upload"
@@ -490,10 +530,63 @@ export default function AdminPage() {
                                             </small>
                                         </label>
 
-                                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                                            <button type="button" onClick={() => { setEditingItem(null); setIsAddingNew(false); }} className={styles.cancelBtn}>取消</button>
+                                        <div className={styles.optionsSection}>
+                                            <h4>客製化選項</h4>
+                                            <div className={styles.optionsList}>
+                                                {editingItem.options?.map((option, idx) => (
+                                                    <div key={idx} className={styles.optionItem}>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="選項名稱 (如: 加飯)"
+                                                            value={option.name}
+                                                            onChange={(e) => {
+                                                                const newOptions = [...(editingItem.options || [])];
+                                                                newOptions[idx].name = e.target.value;
+                                                                setEditingItem({ ...editingItem, options: newOptions });
+                                                            }}
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            placeholder="價格"
+                                                            value={option.price}
+                                                            onChange={(e) => {
+                                                                const newOptions = [...(editingItem.options || [])];
+                                                                newOptions[idx].price = Number(e.target.value);
+                                                                setEditingItem({ ...editingItem, options: newOptions });
+                                                            }}
+                                                            style={{ width: '80px' }}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newOptions = editingItem.options?.filter((_, i) => i !== idx);
+                                                                setEditingItem({ ...editingItem, options: newOptions });
+                                                            }}
+                                                            className={styles.removeOptionBtn}
+                                                        >
+                                                            <X size={16} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className={styles.addOptionBtn}
+                                                onClick={() => {
+                                                    const newOptions = [...(editingItem.options || []), { name: '', price: 0 }];
+                                                    setEditingItem({ ...editingItem, options: newOptions });
+                                                }}
+                                            >
+                                                <Plus size={16} /> 新增選項
+                                            </button>
+                                        </div>
+
+                                        <div className={styles.modalActions}>
+                                            <button type="button" onClick={() => { setEditingItem(null); setIsAddingNew(false); }} className={styles.cancelBtn}>
+                                                取消
+                                            </button>
                                             <button type="submit" className={styles.saveBtn} disabled={isUploading}>
-                                                {isUploading ? '請等待圖片上傳...' : '儲存'}
+                                                <Save size={18} /> 儲存
                                             </button>
                                         </div>
                                     </form>

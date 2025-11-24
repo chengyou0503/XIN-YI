@@ -1,3 +1,8 @@
+export interface MenuOption {
+    name: string;
+    price: number;
+}
+
 export interface MenuItem {
     id: string;
     name: string;
@@ -6,10 +11,12 @@ export interface MenuItem {
     category: string;
     imageUrl: string;
     available: boolean;
+    options?: MenuOption[];
 }
 
 export interface CartItem extends MenuItem {
     quantity: number;
+    selectedOptions?: MenuOption[];
 }
 
 export interface Order {

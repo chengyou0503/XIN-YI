@@ -3,8 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/lib/mockData';
-import { MenuItem, CartItem, Category } from '@/types';
-import { ShoppingCart, Plus, Minus, X, Utensils } from 'lucide-react';
+import { MenuItem, CartItem, Category, MenuOption } from '@/types';
+import { ShoppingCart, Plus, Minus, X, Utensils, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { StorageService } from '@/lib/storage';
 import styles from './menu.module.css';
@@ -16,10 +16,15 @@ function MenuPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const tableId = searchParams.get('table');
-    const [activeCategory, setActiveCategory] = useState<Category>('熱炒類');
+    // Default category must be one of the defined Category types
+    const [activeCategory, setActiveCategory] = useState<Category>('鐵板類');
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
+
+    // Options Modal State
+    const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+    const [selectedOptions, setSelectedOptions] = useState<MenuOption[]>([]);
 
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -33,12 +38,46 @@ function MenuPage() {
     const filteredItems = menuItems.filter(item => item.category === activeCategory);
 
     const addToCart = (item: MenuItem) => {
+        if (item.options && item.options.length > 0) {
+            setSelectedItem(item);
+            setSelectedOptions([]);
+            return;
+        }
+
+        addItemToCart(item, []);
+    };
+
+    const addItemToCart = (item: MenuItem, options: MenuOption[]) => {
         setCart(prev => {
-            const existing = prev.find(i => i.id === item.id);
+            // Find existing item with exact same options
+            const existing = prev.find(i =>
+                i.id === item.id &&
+                JSON.stringify(i.selectedOptions?.sort((a, b) => a.name.localeCompare(b.name))) ===
+                JSON.stringify(options.sort((a, b) => a.name.localeCompare(b.name)))
+            );
+
             if (existing) {
-                return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+                return prev.map(i => i === existing ? { ...i, quantity: i.quantity + 1 } : i);
             }
-            return [...prev, { ...item, quantity: 1 }];
+            return [...prev, { ...item, quantity: 1, selectedOptions: options }];
+        });
+    };
+
+    const handleConfirmOptions = () => {
+        if (selectedItem) {
+            addItemToCart(selectedItem, selectedOptions);
+            setSelectedItem(null);
+            setSelectedOptions([]);
+        }
+    };
+
+    const toggleOption = (option: MenuOption) => {
+        setSelectedOptions(prev => {
+            const exists = prev.find(o => o.name === option.name);
+            if (exists) {
+                return prev.filter(o => o.name !== option.name);
+            }
+            return [...prev, option];
         });
     };
 
@@ -95,7 +134,10 @@ function MenuPage() {
         }, 3000);
     };
 
-    const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const totalAmount = cart.reduce((sum, item) => {
+        const optionsPrice = item.selectedOptions?.reduce((optSum, opt) => optSum + opt.price, 0) || 0;
+        return sum + (item.price + optionsPrice) * item.quantity;
+    }, 0);
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
     return (
@@ -171,6 +213,57 @@ function MenuPage() {
                 ))}
             </div>
 
+            {/* Options Modal */}
+            {selectedItem && (
+                <div className={styles.modalOverlay} onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                        setSelectedItem(null);
+                        setSelectedOptions([]);
+                    }
+                }}>
+                    <div className={styles.modal}>
+                        <h3>{selectedItem.name} - 客製化選項</h3>
+                        <div className={styles.optionsList}>
+                            {selectedItem.options?.map((option, idx) => {
+                                const isSelected = selectedOptions.some(o => o.name === option.name);
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                                        onClick={() => toggleOption(option)}
+                                    >
+                                        <div className={styles.checkbox}>
+                                            {isSelected && <Check size={16} color="white" />}
+                                        </div>
+                                        <span className={styles.optionName}>{option.name}</span>
+                                        <span className={styles.optionPrice}>
+                                            {option.price > 0 ? `+$${option.price}` : '免費'}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className={styles.modalActions}>
+                            <button
+                                className={styles.cancelBtn}
+                                onClick={() => {
+                                    setSelectedItem(null);
+                                    setSelectedOptions([]);
+                                }}
+                            >
+                                取消
+                            </button>
+                            <button
+                                className={styles.confirmBtn}
+                                onClick={handleConfirmOptions}
+                            >
+                                確認加入 (${selectedItem.price + selectedOptions.reduce((sum, opt) => sum + opt.price, 0)})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Floating Action Button for Cart (Mobile Friendly) */}
             {totalItems > 0 && !isCartOpen && (
                 <div className={styles.fabContainer}>
@@ -200,7 +293,12 @@ function MenuPage() {
                                     <div key={item.id} className={styles.cartItem}>
                                         <div className={styles.cartItemInfo}>
                                             <h4>{item.name}</h4>
-                                            <span>${item.price}</span>
+                                            {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                <small className={styles.cartItemOptions}>
+                                                    {item.selectedOptions.map(o => o.name).join(', ')}
+                                                </small>
+                                            )}
+                                            <span>${item.price + (item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0)}</span>
                                         </div>
                                         <div className={styles.quantityControls}>
                                             <button onClick={() => removeFromCart(item.id)}><Minus size={16} /></button>

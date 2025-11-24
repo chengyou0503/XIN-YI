@@ -33,7 +33,16 @@ export class AdminAuthService {
      */
     static isAuthenticated(): boolean {
         if (typeof window === 'undefined') return false;
-        return sessionStorage.getItem(this.SESSION_KEY) !== null;
+        const session = sessionStorage.getItem(this.SESSION_KEY);
+        if (!session) return false;
+
+        try {
+            const data = JSON.parse(session);
+            // Check if data has required fields
+            return !!(data.username && data.role);
+        } catch (e) {
+            return false;
+        }
     }
 
     /**

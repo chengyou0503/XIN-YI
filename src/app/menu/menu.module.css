@@ -510,3 +510,122 @@
         transform: translateY(0);
     }
 }
+.cartItemOptions {
+    display: block;
+    color: #666;
+    font-size: 0.85rem;
+    margin-top: 0.2rem;
+}
+
+/* Options Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+    animation: slideUp 0.3s ease-out;
+}
+
+.modal h3 {
+    margin: 0 0 1.5rem 0;
+    color: #2d3436;
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+.optionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.optionItem {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.optionItem:active {
+    transform: scale(0.98);
+}
+
+.optionItem.selected {
+    border-color: #3498db;
+    background-color: #ebf5fb;
+}
+
+.checkbox {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid #bdc3c7;
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.optionItem.selected .checkbox {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+.optionName {
+    flex: 1;
+    font-weight: 500;
+    color: #2d3436;
+}
+
+.optionPrice {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.modalActions {
+    display: flex;
+    gap: 1rem;
+}
+
+.cancelBtn, .confirmBtn {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancelBtn {
+    background: #f1f2f6;
+    color: #636e72;
+}
+
+.confirmBtn {
+    background: #3498db;
+    color: white;
+}
