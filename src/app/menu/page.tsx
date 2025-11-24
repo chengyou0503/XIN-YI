@@ -252,7 +252,6 @@ export default function MenuPageWrapper() {
         </Suspense>
     );
 }
-const router = useRouter();
 const searchParams = useSearchParams();
 const tableId = searchParams.get('table');
 const [activeCategory, setActiveCategory] = useState<Category>('熱炒類');
