@@ -31,7 +31,7 @@ gh auth login
 登入完成後，在專案目錄執行：
 ```bash
 cd "/Users/chengyou/Desktop/L系統Demo/stir-fry-pos"
-git push -u origin main
+t
 ```
 
 ## 完成後的下一步

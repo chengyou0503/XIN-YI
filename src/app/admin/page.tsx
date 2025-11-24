@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Order, MenuItem } from '@/types';
-import { CheckCircle, DollarSign, ChefHat, RefreshCw, Trash2, Utensils, Edit, Plus, X, Save, QrCode, Upload } from 'lucide-react';
+import { CheckCircle, DollarSign, ChefHat, RefreshCw, Trash2, Utensils, Edit, Plus, X, Save, QrCode, Upload, LogOut } from 'lucide-react';
 import { StorageService } from '@/lib/storage';
 import { ImageUploadService } from '@/lib/imageUpload';
+import { AdminAuthService } from '@/lib/adminAuth';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
@@ -41,6 +42,12 @@ export default function AdminPage() {
     // No longer needed - using real-time subscriptions
 
     useEffect(() => {
+        // Check authentication first
+        if (!AdminAuthService.isAuthenticated()) {
+            router.push('/admin/login');
+            return;
+        }
+
         console.log('🔥 設定 Firestore 即時監聽...');
 
         // Subscribe to real-time orders updates
@@ -70,7 +77,7 @@ export default function AdminPage() {
             unsubscribeOrders();
             unsubscribeMenu();
         };
-    }, []);
+    }, [router]);
 
     const updateStatus = async (orderId: string, status: Order['status']) => {
         await StorageService.updateOrderStatus(orderId, status);
@@ -202,6 +209,13 @@ export default function AdminPage() {
         await StorageService.deleteOrder(orderId);
     };
 
+    const handleLogout = () => {
+        if (confirm('確定要登出嗎？')) {
+            AdminAuthService.logout();
+            router.push('/admin/login');
+        }
+    };
+
     // Filter orders for active view (exclude served/history)
     const activeOrders = orders.filter(o => o.status !== 'served');
 
@@ -229,6 +243,15 @@ export default function AdminPage() {
                     >
                         <QrCode size={20} />
                         <span>QR Code</span>
+                    </button>
+                    <button
+                        className={styles.qrBtn}
+                        onClick={handleLogout}
+                        title="登出"
+                        style={{ backgroundColor: '#e74c3c' }}
+                    >
+                        <LogOut size={20} />
+                        <span>登出</span>
                     </button>
                 </div>
                 <nav className={styles.nav}>
