@@ -171,6 +171,65 @@
     }
 }
 
+/* Mobile & Tablet Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem;
+        position: relative;
+        top: 0;
+    }
+
+    .title {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
+    .controls {
+        flex-direction: column;
+        width: 100%;
+        gap: 1rem;
+    }
+
+    .controlLabel {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .input {
+        width: 100px;
+    }
+
+    .printBtn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .backBtn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .qrCard {
+        padding: 1.5rem;
+    }
+
+    .qrImage {
+        width: 160px;
+        height: 160px;
+    }
+}
+
 @media print {
     .container {
         background-color: white;

@@ -25,19 +25,31 @@ export default function AdminPage() {
 
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
+
+        // Try to play audio file
         const audio = new Audio('/alert.mp3');
+        audio.volume = 0.7; // Set volume to 70%
+
         audio.play()
             .then(() => {
                 console.log('✅ 音效播放成功');
             })
             .catch((error) => {
-                console.warn('⚠️ 音效播放失敗，使用語音替代:', error);
+                console.warn('⚠️ 音效播放失敗:', error);
+                // Fallback to system beep or speech
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance('有新訂單，請注意');
                     utterance.lang = 'zh-TW';
+                    utterance.rate = 1.2;
                     window.speechSynthesis.speak(utterance);
+                    console.log('🔊 使用語音替代通知');
                 }
             });
+    };
+
+    const testNotificationSound = () => {
+        console.log('🧪 測試音效播放');
+        playNotificationSound();
     };
 
     // No longer needed - using real-time subscriptions
@@ -289,6 +301,14 @@ export default function AdminPage() {
                     新易現炒管理系統
                 </h1>
                 <div className={styles.headerActions}>
+                    <button
+                        className={styles.qrBtn}
+                        onClick={testNotificationSound}
+                        title="測試音效"
+                        style={{ backgroundColor: '#3498db' }}
+                    >
+                        <span>🔔 測試音效</span>
+                    </button>
                     <button
                         className={styles.qrBtn}
                         onClick={() => router.push('/admin/qr')}

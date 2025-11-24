@@ -27,6 +27,7 @@ function MenuPage() {
     const [selectedOptions, setSelectedOptions] = useState<MenuOption[]>([]);
 
     const [isSuccess, setIsSuccess] = useState(false);
+    const [showFriendInvite, setShowFriendInvite] = useState(false);
 
     useEffect(() => {
         // Load menu from Firestore
@@ -35,7 +36,33 @@ function MenuPage() {
         });
     }, []);
 
+    // Check friend status and show invite modal
+    useEffect(() => {
+        if (user && !isFriend) {
+            // Show friend invite modal after a short delay
+            const timer = setTimeout(() => {
+                setShowFriendInvite(true);
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else {
+            setShowFriendInvite(false);
+        }
+    }, [user, isFriend]);
+
     const filteredItems = menuItems.filter(item => item.category === activeCategory);
+
+    const handleOpenOfficialAccount = () => {
+        // Open LINE Official Account to add friend
+        if (typeof window !== 'undefined' && (window as any).liff) {
+            // You need to replace this with your actual LINE Official Account URL
+            // Format: https://line.me/R/ti/p/@your_line_id
+            const officialAccountUrl = 'https://line.me/R/ti/p/@your_line_id';
+            (window as any).liff.openWindow({
+                url: officialAccountUrl,
+                external: true
+            });
+        }
+    };
 
     const addToCart = (item: MenuItem) => {
         if (item.options && item.options.length > 0) {
@@ -91,7 +118,7 @@ function MenuPage() {
         });
     };
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         if (!tableId) {
             alert('錯誤：找不到桌號');
             return;
@@ -105,11 +132,13 @@ function MenuPage() {
 
         // Save order
         const newOrder = StorageService.createOrder(tableId, cart);
+        console.log('📦 訂單已建立:', newOrder);
 
         // Send LINE Notification if user is logged in
         if (user && user.id) {
             try {
-                fetch('/api/line/push', {
+                console.log('📤 正在發送 LINE 通知給使用者:', user.id);
+                const response = await fetch('/api/line/push', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -119,14 +148,24 @@ function MenuPage() {
                         order: newOrder,
                     }),
                 });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    console.log('✅ LINE 通知發送成功:', result);
+                } else {
+                    console.error('❌ LINE 通知發送失敗:', result);
+                }
             } catch (error) {
-                console.error('Failed to send LINE notification:', error);
+                console.error('❌ LINE 通知發送發生錯誤:', error);
             }
+        } else {
+            console.warn('⚠️ 使用者未登入或無 userId，跳過 LINE 通知');
         }
 
         setCart([]);
         setIsCartOpen(false);
-        alert('點餐成功！請稍候餐點上桌。');
+        setIsSuccess(true);
 
         // Auto hide success message after 3 seconds
         setTimeout(() => {
@@ -343,6 +382,38 @@ function MenuPage() {
                         <button className={styles.successBtn} onClick={() => setIsSuccess(false)}>
                             好的
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Friend Invite Modal */}
+            {showFriendInvite && (
+                <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
+                    <div className={styles.friendInviteCard}>
+                        <div className={styles.friendInviteIcon}>
+                            <div style={{ fontSize: '4rem' }}>🎁</div>
+                        </div>
+                        <h2 style={{ color: '#2d3436', marginBottom: '1rem' }}>歡迎光臨新易現炒！</h2>
+                        <p style={{ color: '#636e72', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                            請先<strong style={{ color: '#00b894' }}>加入我們的 LINE 官方帳號</strong>，<br />
+                            即可享受即時訂單通知與會員優惠！
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem' }}>
+                            <button
+                                className={styles.secondaryBtn}
+                                onClick={() => setShowFriendInvite(false)}
+                                style={{ flex: 1, padding: '0.875rem', fontSize: '1rem' }}
+                            >
+                                稍後再說
+                            </button>
+                            <button
+                                className={styles.confirmBtn}
+                                onClick={handleOpenOfficialAccount}
+                                style={{ flex: 2, padding: '0.875rem', fontSize: '1rem', fontWeight: 'bold' }}
+                            >
+                                立即加入好友 🎉
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
