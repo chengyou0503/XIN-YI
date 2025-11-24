@@ -20,25 +20,36 @@ export default function AdminPage() {
     const [isAddingNew, setIsAddingNew] = useState(false);
 
     const playNotificationSound = () => {
+        console.log('🔔 嘗試播放通知音效...');
         const audio = new Audio('/alert.mp3');
-        audio.play().catch(() => {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance('有新訂單，請注意');
-                utterance.lang = 'zh-TW';
-                window.speechSynthesis.speak(utterance);
-            }
-        });
+        audio.play()
+            .then(() => {
+                console.log('✅ 音效播放成功');
+            })
+            .catch((error) => {
+                console.warn('⚠️ 音效播放失敗，使用語音替代:', error);
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance('有新訂單，請注意');
+                    utterance.lang = 'zh-TW';
+                    window.speechSynthesis.speak(utterance);
+                }
+            });
     };
 
     // No longer needed - using real-time subscriptions
 
     useEffect(() => {
+        console.log('🔥 設定 Firestore 即時監聽...');
+
         // Subscribe to real-time orders updates
         const unsubscribeOrders = StorageService.subscribeToOrders((newOrders) => {
+            console.log(`📦 收到訂單更新，共 ${newOrders.length} 筆訂單`);
+
             setOrders(newOrders);
 
             // Play notification sound for new orders
             if (!isFirstLoad.current && newOrders.length > previousOrderCountRef.current) {
+                console.log('🆕 偵測到新訂單！');
                 playNotificationSound();
             }
 
@@ -48,10 +59,12 @@ export default function AdminPage() {
 
         // Subscribe to real-time menu updates
         const unsubscribeMenu = StorageService.subscribeToMenu((newMenu) => {
+            console.log(`📋 收到菜單更新，共 ${newMenu.length} 項`);
             setMenuItems(newMenu);
         });
 
         return () => {
+            console.log('🔌 取消 Firestore 監聽');
             unsubscribeOrders();
             unsubscribeMenu();
         };
