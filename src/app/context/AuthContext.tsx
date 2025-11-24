@@ -29,28 +29,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
                 const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID;
                 if (!liffId) {
-                    console.warn('LIFF ID is missing in .env.local');
-                    setIsLoading(false);
+                    console.error('LIFF ID is not set');
+                    setIsLoading(false); // Keep this to ensure loading state is resolved
                     return;
                 }
 
                 await liff.init({ liffId });
 
-                if (!liff.isLoggedIn()) {
-                    // 修正：強制登入，並指定 redirectUri 為當前頁面 (避免 index.html 問題)
-                    // 使用 window.location.href 確保導回當前頁面
-                    liff.login({ redirectUri: window.location.href });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    setUser({
+                        id: profile.userId,
+                        name: profile.displayName,
+                        pictureUrl: profile.pictureUrl,
+                    });
+                } else {
+                    // Automatically trigger login if not logged in
+                    liff.login({
+                        redirectUri: window.location.href,
+                    });
+                    // liff.login will redirect, so no further code in this block will execute
+                    // and setIsLoading(false) will be handled after redirection/re-initialization
                     return;
                 }
-
-                const profile = await liff.getProfile();
-                setUser({
-                    id: profile.userId,
-                    name: profile.displayName,
-                    pictureUrl: profile.pictureUrl,
-                });
             } catch (error) {
-                console.error('LIFF Initialization failed', error);
+                console.error('LIFF initialization failed', error);
                 setLiffError(error instanceof Error ? error.message : 'Unknown error');
             } finally {
                 setIsLoading(false);
