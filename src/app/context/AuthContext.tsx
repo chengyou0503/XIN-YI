@@ -44,13 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         pictureUrl: profile.pictureUrl,
                     });
                 } else {
-                    // Automatically trigger login if not logged in
-                    liff.login({
-                        redirectUri: window.location.href,
-                    });
-                    // liff.login will redirect, so no further code in this block will execute
-                    // and setIsLoading(false) will be handled after redirection/re-initialization
-                    return;
+                    // Only auto-login if NOT on admin page
+                    const isAdminPage = window.location.pathname.startsWith('/admin');
+                    if (!isAdminPage) {
+                        // Automatically trigger login if not logged in
+                        liff.login({
+                            redirectUri: window.location.href,
+                        });
+                        // liff.login will redirect, so no further code in this block will execute
+                        // and setIsLoading(false) will be handled after redirection/re-initialization
+                        return;
+                    }
                 }
             } catch (error) {
                 console.error('LIFF initialization failed', error);
