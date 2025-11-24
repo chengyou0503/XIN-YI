@@ -216,6 +216,27 @@ export default function AdminPage() {
         }
     };
 
+    const handleBatchImport = async () => {
+        if (!confirm('確定要匯入完整菜單嗎？\n\n這將會：\n1. 導入 104 個菜單項目\n2. 使用新易現炒店的完整菜單\n3. 可能覆蓋現有同名品項\n\n建議先備份現有菜單！')) {
+            return;
+        }
+
+        try {
+            // 動態導入菜單資料
+            const { MENU_DATA } = await import('@/lib/menuData');
+
+            // 批量保存所有菜單
+            await StorageService.saveMenu(MENU_DATA);
+
+            alert(`✅ 成功匯入 ${MENU_DATA.length} 個菜單項目！\n\n包含：\n- 鐵板類\n- 燴飯類\n- 現炒類\n- 三杯類\n- 炒飯類\n- 湯麵類\n- 湯類\n- 蔬菜類\n- 飲料類`);
+
+            // 刷新菜單列表（Firestore 即時監聽會自動更新）
+        } catch (error) {
+            console.error('批量匯入失敗:', error);
+            alert('❌ 批量匯入失敗，請查看 Console');
+        }
+    };
+
     // Filter orders for active view (exclude served/history)
     const activeOrders = orders.filter(o => o.status !== 'served');
 
@@ -381,9 +402,18 @@ export default function AdminPage() {
                     <div className={styles.menuManagement}>
                         <div className={styles.menuHeader}>
                             <h2>菜單管理</h2>
-                            <button className={styles.addBtn} onClick={startAdd}>
-                                <Plus size={18} /> 新增餐點
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    className={styles.addBtn}
+                                    onClick={handleBatchImport}
+                                    style={{ backgroundColor: '#27ae60' }}
+                                >
+                                    <Upload size={18} /> 批量匯入菜單
+                                </button>
+                                <button className={styles.addBtn} onClick={startAdd}>
+                                    <Plus size={18} /> 新增餐點
+                                </button>
+                            </div>
                         </div>
 
                         {editingItem && (

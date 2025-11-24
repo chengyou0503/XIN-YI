@@ -21,4 +21,4 @@ export interface Order {
     createdAt: Date;
 }
 
-export type Category = '熱炒類' | '酥炸類' | '湯類' | '飯麵類' | '青菜類';
+export type Category = '鐵板類' | '燴飯類' | '現炒類' | '三杯類' | '炒飯類' | '湯麵類' | '湯類' | '蔬菜類' | '飲料類';
