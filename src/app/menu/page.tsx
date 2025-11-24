@@ -12,7 +12,7 @@ import styles from './menu.module.css';
 
 
 function MenuPage() {
-    const { user, login } = useAuth();
+    const { user, login, isFriend } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const tableId = searchParams.get('table');
@@ -55,6 +55,12 @@ function MenuPage() {
     const handleCheckout = () => {
         if (!tableId) {
             alert('錯誤：找不到桌號');
+            return;
+        }
+
+        // Check if user is friend
+        if (!isFriend) {
+            alert('⚠️ 請先加入 LINE 官方帳號好友才能點餐！\n\n這樣我們才能即時為您更新訂單狀態。');
             return;
         }
 

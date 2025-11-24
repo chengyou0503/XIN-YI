@@ -11,17 +11,20 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
+    isLoading: boolean;
+    liffError: string | null;
+    isFriend: boolean;
     login: () => void;
     logout: () => void;
-    isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [liffError, setLiffError] = useState<string | null>(null);
+    const [isFriend, setIsFriend] = useState(false);
 
     useEffect(() => {
         // Initialize LIFF
@@ -43,6 +46,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         name: profile.displayName,
                         pictureUrl: profile.pictureUrl,
                     });
+
+                    // Check if user is friend
+                    try {
+                        const friendship = await liff.getFriendship();
+                        setIsFriend(friendship.friendFlag);
+                        console.log('好友狀態:', friendship.friendFlag ? '已加好友' : '未加好友');
+                    } catch (error) {
+                        console.warn('無法檢查好友狀態:', error);
+                        setIsFriend(false);
+                    }
                 } else {
                     // Only auto-login if NOT on admin page
                     const isAdminPage = window.location.pathname.startsWith('/admin');
@@ -87,7 +100,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+        <AuthContext.Provider value={{
+            user,
+            login,
+            logout,
+            isLoading,
+            liffError,
+            isFriend,
+        }}>
             {children}
         </AuthContext.Provider>
     );
