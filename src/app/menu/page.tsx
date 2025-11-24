@@ -252,7 +252,6 @@ export default function MenuPageWrapper() {
         </Suspense>
     );
 }
-const { user, login } = useAuth();
 const router = useRouter();
 const searchParams = useSearchParams();
 const tableId = searchParams.get('table');
