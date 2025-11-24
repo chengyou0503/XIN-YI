@@ -604,8 +604,8 @@
     border-bottom: none;
 }
 
-/* iPad Optimization - Larger touch targets and text */
-@media (min-width: 768px) and (max-width: 1024px) {
+/* Tablet Optimization - iPad, iPad Air, iPad Pro */
+@media (min-width: 768px) and (max-width: 1366px) {
     .header {
         padding: 2rem 3rem;
     }
