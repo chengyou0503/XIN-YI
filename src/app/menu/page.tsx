@@ -19,7 +19,8 @@ function MenuPage() {
     const tableId = searchParams.get('table');
     // Default category must be one of the defined Category types
     const [activeCategory, setActiveCategory] = useState<Category>('鐵板類');
-    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    // 使用本地資料作為初始狀態，確保快速載入
+    const [menuItems, setMenuItems] = useState<MenuItem[]>(MENU_DATA);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -30,33 +31,29 @@ function MenuPage() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [showFriendInvite, setShowFriendInvite] = useState(false);
 
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false); // 改為 false，因為已有預設資料
 
     useEffect(() => {
-        // Load menu from Firestore
+        // 在背景載入 Firestore 菜單資料
         const loadMenu = async () => {
             try {
-                console.log('📋 開始載入菜單...');
+                console.log('📋 開始從 Firestore 載入菜單...');
                 const items = await StorageService.getMenu();
-                console.log('📋 菜單載入完成，項目數量:', items.length);
+                console.log('📋 Firestore 菜單載入完成，項目數量:', items.length);
 
                 if (items && items.length > 0) {
                     setMenuItems(items);
+                    console.log('✅ 已更新為 Firestore 菜單');
                 } else {
-                    console.warn('⚠️ 菜單資料為空，使用預設資料');
-                    // 如果 Firestore 沒有資料，使用本地預設資料
-                    setMenuItems(MENU_DATA);
+                    console.log('ℹ️ Firestore 菜單為空，繼續使用預設資料');
                 }
             } catch (err) {
-                console.error('❌ 載入菜單失敗:', err);
-                // 載入失敗時使用預設資料
-                setMenuItems(MENU_DATA);
-            } finally {
-                setIsLoading(false);
+                console.error('❌ 載入 Firestore 菜單失敗，使用預設資料:', err);
             }
         };
 
-        loadMenu();
+        // 延遲載入，避免阻塞 UI
+        setTimeout(loadMenu, 100);
     }, []);
 
     if (isLoading) {
