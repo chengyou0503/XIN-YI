@@ -69,7 +69,7 @@ export default function AdminLoginPage() {
                 </form>
 
                 <div className={styles.footer}>
-                    <small>© 2024 新易現炒 POS 系統</small>
+                    <small>© 2025 新易現炒 POS 系統 by Lawrence</small>
                 </div>
             </div>
         </div>

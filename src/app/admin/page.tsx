@@ -303,14 +303,6 @@ export default function AdminPage() {
                 <div className={styles.headerActions}>
                     <button
                         className={styles.qrBtn}
-                        onClick={testNotificationSound}
-                        title="測試音效"
-                        style={{ backgroundColor: '#3498db' }}
-                    >
-                        <span>🔔 測試音效</span>
-                    </button>
-                    <button
-                        className={styles.qrBtn}
                         onClick={() => router.push('/admin/qr')}
                         title="QR Code 產生器"
                     >
@@ -461,18 +453,9 @@ export default function AdminPage() {
                     <div className={styles.menuManagement}>
                         <div className={styles.menuHeader}>
                             <h2>菜單管理</h2>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button
-                                    className={styles.addBtn}
-                                    onClick={handleBatchImport}
-                                    style={{ backgroundColor: '#27ae60' }}
-                                >
-                                    <Upload size={18} /> 批量匯入菜單
-                                </button>
-                                <button className={styles.addBtn} onClick={startAdd}>
-                                    <Plus size={18} /> 新增餐點
-                                </button>
-                            </div>
+                            <button className={styles.addBtn} onClick={startAdd}>
+                                <Plus size={18} /> 新增餐點
+                            </button>
                         </div>
 
                         {editingItem && (
