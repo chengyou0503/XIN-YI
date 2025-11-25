@@ -180,6 +180,10 @@ export class StorageService {
     }
 
     static async createOrder(tableId: string, items: CartItem[]): Promise<Order> {
+        console.log('\n========== 🆕 建立新訂單 ==========');
+        console.log('🔢 桌號:', tableId);
+        console.log('📦 品項數量:', items.length);
+
         const newOrder: Order = {
             id: Date.now().toString(),
             tableId,
@@ -189,7 +193,15 @@ export class StorageService {
             createdAt: new Date(),
         };
 
+        console.log('📝 訂單 ID:', newOrder.id);
+        console.log('💰 總金額:', newOrder.totalAmount);
+        console.log('📋 訂單狀態:', newOrder.status);
+        console.log('🕐 建立時間:', newOrder.createdAt);
+
         await this.saveOrder(newOrder);
+        console.log('✅ 訂單已儲存至 Firestore');
+        console.log('========== ✅ 訂單建立完成 ==========\n');
+
         return newOrder;
     }
 

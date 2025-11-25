@@ -220,47 +220,60 @@ function MenuPage() {
             return;
         }
 
-        // Save order
-        const newOrder = StorageService.createOrder(tableId, cart);
-        console.log('📦 訂單已建立:', newOrder);
+        console.log('\n========== 📝 開始送出訂單 ==========');
+        console.log('🔢 桌號:', tableId);
+        console.log('🛒 購物車品項:', cart.length);
+        console.log('💰 訂單總金額:', cart.reduce((sum, item) => sum + item.price * item.quantity, 0));
 
-        // Send LINE Notification if user is logged in
-        if (user && user.id) {
-            try {
-                console.log('📤 正在發送 LINE 通知給使用者:', user.id);
-                const response = await fetch('/api/line/push', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: user.id,
-                        order: newOrder,
-                    }),
-                });
+        try {
+            // Save order (使用 await 確保儲存完成)
+            const newOrder = await StorageService.createOrder(tableId, cart);
+            console.log('✅ 訂單已成功儲存至 Firestore');
+            console.log('📦 訂單 ID:', newOrder.id);
+            console.log('📋 訂單內容:', newOrder);
 
-                const result = await response.json();
+            // Send LINE Notification if user is logged in
+            if (user && user.id) {
+                try {
+                    console.log('📤 正在發送 LINE 通知給使用者:', user.id);
+                    const response = await fetch('/api/line/push', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            userId: user.id,
+                            order: newOrder,
+                        }),
+                    });
 
-                if (response.ok) {
-                    console.log('✅ LINE 通知發送成功:', result);
-                } else {
-                    console.error('❌ LINE 通知發送失敗:', result);
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        console.log('✅ LINE 通知發送成功:', result);
+                    } else {
+                        console.error('❌ LINE 通知發送失敗:', result);
+                    }
+                } catch (error) {
+                    console.error('❌ LINE 通知發送發生錯誤:', error);
                 }
-            } catch (error) {
-                console.error('❌ LINE 通知發送發生錯誤:', error);
+            } else {
+                console.warn('⚠️ 使用者未登入或無 userId，跳過 LINE 通知');
             }
-        } else {
-            console.warn('⚠️ 使用者未登入或無 userId，跳過 LINE 通知');
+
+            setCart([]);
+            setIsCartOpen(false);
+            setIsSuccess(true);
+            console.log('========== ✅ 訂單流程完成 ==========\n');
+
+            // Auto hide success message after 5 seconds (延長顯示時間)
+            setTimeout(() => {
+                setIsSuccess(false);
+            }, 5000);
+        } catch (error) {
+            console.error('❌ 訂單送出失敗:', error);
+            alert('訂單送出失敗，請重試或聯絡服務人員');
         }
-
-        setCart([]);
-        setIsCartOpen(false);
-        setIsSuccess(true);
-
-        // Auto hide success message after 3 seconds
-        setTimeout(() => {
-            setIsSuccess(false);
-        }, 3000);
     };
 
     const totalAmount = cart.reduce((sum, item) => {
@@ -479,9 +492,10 @@ function MenuPage() {
                             <Utensils size={40} />
                         </div>
                         <h3>訂單已送出！</h3>
-                        <p>廚房正在為您準備餐點</p>
-                        <button className={styles.successBtn} onClick={() => setIsSuccess(false)}>
-                            好的
+                        <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ff7675', marginTop: '1rem' }}>請至櫃檯結帳</p>
+                        <p style={{ fontSize: '0.95rem', color: '#636e72', marginTop: '0.5rem' }}>廚房正在為您準備餐點</p>
+                        <button className={styles.successBtn} onClick={() => setIsSuccess(false)} style={{ marginTop: '1.5rem' }}>
+                            知道了
                         </button>
                     </div>
                 </div>
