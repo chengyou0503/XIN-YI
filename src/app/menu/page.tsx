@@ -7,6 +7,7 @@ import { MenuItem, CartItem, Category, MenuOption } from '@/types';
 import { ShoppingCart, Plus, Minus, X, Utensils, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { StorageService } from '@/lib/storage';
+import { MENU_DATA } from '@/lib/menuData';
 import styles from './menu.module.css';
 
 
