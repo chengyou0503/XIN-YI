@@ -156,10 +156,14 @@ export default function AdminPage() {
             updatedMenu.push(editingItem);
         }
 
-        // 先更新本地狀態並關閉 modal
+        // 更新本地狀態
         setMenuItems(updatedMenu);
-        setEditingItem(null);
-        setIsAddingNew(false);
+
+        // 使用 setTimeout 確保關閉 modal 的狀態更新在下一個事件循環執行
+        setTimeout(() => {
+            setEditingItem(null);
+            setIsAddingNew(false);
+        }, 0);
 
         // 異步儲存到 Firebase（在背景執行）
         try {
