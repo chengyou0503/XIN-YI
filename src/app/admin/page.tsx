@@ -598,24 +598,54 @@ export default function AdminPage() {
                         )}
 
                         <div className={styles.menuList}>
-                            {menuItems.map(item => (
-                                <div key={item.id} className={styles.menuItemCard}>
-                                    <img src={item.imageUrl} alt={item.name} className={styles.itemThumb} onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.jpg'} />
-                                    <div className={styles.itemInfo}>
-                                        <h4>{item.name}</h4>
-                                        <p>${item.price}</p>
-                                        <span className={styles.categoryTag}>{item.category}</span>
+                            {CATEGORIES.map(category => {
+                                const itemsInCategory = menuItems.filter(item => item.category === category);
+                                if (itemsInCategory.length === 0) return null;
+
+                                return (
+                                    <div key={category} style={{ gridColumn: '1 / -1' }}>
+                                        <h3 style={{
+                                            fontSize: '1.3rem',
+                                            color: '#2d3436',
+                                            marginBottom: '1rem',
+                                            marginTop: '2rem',
+                                            paddingBottom: '0.5rem',
+                                            borderBottom: '3px solid #ff7675',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem'
+                                        }}>
+                                            <Utensils size={20} />
+                                            {category} ({itemsInCategory.length} 項)
+                                        </h3>
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                                            gap: '1.5rem',
+                                            marginTop: '1rem'
+                                        }}>
+                                            {itemsInCategory.map(item => (
+                                                <div key={item.id} className={styles.menuItemCard}>
+                                                    <img src={item.imageUrl} alt={item.name} className={styles.itemThumb} onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.jpg'} />
+                                                    <div className={styles.itemInfo}>
+                                                        <h4>{item.name}</h4>
+                                                        <p>${item.price}</p>
+                                                        <span className={styles.categoryTag}>{item.category}</span>
+                                                    </div>
+                                                    <div className={styles.itemActions}>
+                                                        <button onClick={() => startEdit(item)} className={styles.iconBtn} title="編輯">
+                                                            <Edit size={18} />
+                                                        </button>
+                                                        <button onClick={() => handleDeleteItem(item.id)} className={styles.iconBtn} style={{ color: '#ff7675' }} title="刪除">
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className={styles.itemActions}>
-                                        <button onClick={() => startEdit(item)} className={styles.iconBtn} title="編輯">
-                                            <Edit size={18} />
-                                        </button>
-                                        <button onClick={() => handleDeleteItem(item.id)} className={styles.iconBtn} style={{ color: '#ff7675' }} title="刪除">
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}
