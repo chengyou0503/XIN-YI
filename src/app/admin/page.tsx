@@ -664,12 +664,19 @@ export default function AdminPage() {
                                             </button>
                                         </div>
 
-                                        <div className={styles.modalActions}>
-                                            <button type="button" onClick={() => { setEditingItem(null); setIsAddingNew(false); }} className={styles.cancelBtn}>
+                                        <div className={styles.modalFooter} style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditingItem(null);
+                                                    setIsAddingNew(false);
+                                                }}
+                                                className={styles.cancelBtn}
+                                            >
                                                 取消
                                             </button>
                                             <button type="submit" className={styles.saveBtn} disabled={isUploading}>
-                                                <Save size={18} /> 儲存
+                                                {isUploading ? '上傳中...' : '儲存'}
                                             </button>
                                         </div>
                                     </form>
