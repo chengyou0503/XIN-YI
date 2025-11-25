@@ -165,8 +165,13 @@ export default function AdminPage() {
 
         // 確保使用當前的 editingItem（包含最新的 imageUrl）
         const itemToSave = { ...editingItem };
-        console.log('💾 準備儲存餐點:', itemToSave.name);
+        console.log('\n========== 💾 開始儲存餐點流程 ==========');
+        console.log('📝 餐點名稱:', itemToSave.name);
+        console.log('🆔 餐點 ID:', itemToSave.id);
         console.log('🖼️ 圖片 URL:', itemToSave.imageUrl);
+        console.log('💰 價格:', itemToSave.price);
+        console.log('📂 分類:', itemToSave.category);
+        console.log('📋 完整餐點資料:', JSON.stringify(itemToSave, null, 2));
 
         const updatedMenu = menuItems.map(m => m.id === itemToSave.id ? itemToSave : m);
         if (isAddingNew && !menuItems.find(m => m.id === itemToSave.id)) {
@@ -177,6 +182,7 @@ export default function AdminPage() {
         }
 
         // 更新本地狀態
+        console.log('🔄 更新本地 React 狀態...');
         setMenuItems(updatedMenu);
 
         // 使用 setTimeout 確保關閉 modal 的狀態更新在下一個事件循環執行
@@ -187,9 +193,18 @@ export default function AdminPage() {
 
         // 異步儲存到 Firebase（在背景執行）
         try {
+            console.log('🔥 開始儲存至 Firestore...');
             await StorageService.saveMenu(updatedMenu);
             console.log('✅ 菜單已成功儲存至 Firestore');
             console.log('📊 儲存的餐點數量:', updatedMenu.length);
+
+            // 驗證儲存結果
+            console.log('🔍 驗證剛儲存的餐點...');
+            const savedItem = updatedMenu.find(m => m.id === itemToSave.id);
+            if (savedItem) {
+                console.log('✅ 驗證成功 - 圖片 URL:', savedItem.imageUrl);
+            }
+            console.log('========== ✅ 儲存流程完成 ==========\n');
         } catch (error) {
             console.error('❌ 儲存失敗:', error);
             alert('儲存失敗，請重試');
@@ -227,27 +242,41 @@ export default function AdminPage() {
         if (!file || !editingItem) return;
 
         try {
+            console.log('\n========== 📤 開始圖片上傳流程 ==========');
+            console.log('📄 檔案名稱:', file.name);
+            console.log('📏 檔案大小:', (file.size / 1024).toFixed(2), 'KB');
+            console.log('🎨 檔案類型:', file.type);
+            console.log('🆔 當前餐點 ID:', editingItem.id);
+            console.log('📝 當前餐點名稱:', editingItem.name);
+            console.log('🖼️ 上傳前的圖片 URL:', editingItem.imageUrl);
+
             // Validate image
             ImageUploadService.validateImage(file);
+            console.log('✅ 圖片驗證通過');
 
             setIsUploading(true);
-            console.log('📤 開始上傳圖片...');
 
             // Upload to Firebase Storage
             const imagePath = `menu-items/${editingItem.id}-${Date.now()}`;
+            console.log('📁 Storage 路徑:', imagePath);
             const imageUrl = await ImageUploadService.uploadImage(file, imagePath);
 
             console.log('✅ 圖片上傳成功！');
-            console.log('🔗 圖片 URL:', imageUrl);
+            console.log('🔗 新圖片 URL:', imageUrl);
 
             // Update editing item with new image URL
-            setEditingItem({
+            const updatedItem = {
                 ...editingItem,
                 imageUrl,
-            });
+            };
 
-            console.log('✅ editingItem 已更新 imageUrl');
-            console.log('⚠️ 請記得點擊「儲存」按鈕以保存變更到 Firestore');
+            setEditingItem(updatedItem);
+
+            console.log('✅ editingItem 狀態已更新');
+            console.log('🔍 更新後的 editingItem.imageUrl:', updatedItem.imageUrl);
+            console.log('⚠️ 【重要】圖片已上傳到 Firebase Storage，但還沒儲存到 Firestore');
+            console.log('⚠️ 【重要】請點擊「儲存」按鈕以將變更保存到資料庫');
+            console.log('========== ✅ 圖片上傳流程完成 ==========\n');
         } catch (error) {
             console.error('❌ 圖片上傳失敗:', error);
             alert(error instanceof Error ? error.message : '圖片上傳失敗');

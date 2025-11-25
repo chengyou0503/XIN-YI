@@ -74,22 +74,62 @@ export class StorageService {
 
     static async saveMenu(menu: MenuItem[]) {
         try {
-            const batch = menu.map(item =>
-                setDoc(doc(db, COLLECTIONS.MENU, item.id), item)
-            );
+            console.log('\n========== 🔥 Firestore 儲存菜單 ==========');
+            console.log('📊 總共要儲存的餐點數:', menu.length);
+
+            // 記錄每個要儲存的餐點（只記錄前 5 個避免過多輸出）
+            menu.slice(0, 5).forEach((item, index) => {
+                console.log(`📝 餐點 ${index + 1}:`, {
+                    id: item.id,
+                    name: item.name,
+                    imageUrl: item.imageUrl,
+                    price: item.price,
+                    category: item.category
+                });
+            });
+            if (menu.length > 5) {
+                console.log(`... 還有 ${menu.length - 5} 個餐點`);
+            }
+
+            const batch = menu.map(item => {
+                console.log(`💾 儲存餐點 ID: ${item.id}, 圖片: ${item.imageUrl}`);
+                return setDoc(doc(db, COLLECTIONS.MENU, item.id), item);
+            });
+
             await Promise.all(batch);
+            console.log('✅ 所有餐點已成功寫入 Firestore');
+            console.log('========== ✅ Firestore 儲存完成 ==========\n');
         } catch (error) {
-            console.error('Error saving menu:', error);
+            console.error('❌ Firestore 儲存菜單失敗:', error);
+            throw error;
         }
     }
 
     static subscribeToMenu(callback: MenuCallback) {
         const q = query(collection(db, COLLECTIONS.MENU));
         this.menuUnsubscribe = onSnapshot(q, (snapshot) => {
-            const menu = snapshot.docs.map(doc => ({
-                ...doc.data(),
-                id: doc.id
-            })) as MenuItem[];
+            console.log('\n========== 🔔 Firestore 菜單即時更新 ==========');
+            console.log('📊 從 Firestore 收到的餐點數:', snapshot.docs.length);
+
+            const menu = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    id: doc.id
+                } as MenuItem;
+            });
+
+            // 記錄前 5 個餐點的圖片 URL（用於驗證）
+            menu.slice(0, 5).forEach((item, index) => {
+                console.log(`📝 餐點 ${index + 1}: ${item.name}, 圖片: ${item.imageUrl}`);
+            });
+            if (menu.length > 5) {
+                console.log(`... 還有 ${menu.length - 5} 個餐點`);
+            }
+
+            console.log('✅ 菜單資料已傳遞給回調函數');
+            console.log('========== ✅ 即時更新完成 ==========\n');
+
             callback(menu);
         });
         return this.menuUnsubscribe;
