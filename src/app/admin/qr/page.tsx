@@ -8,7 +8,10 @@ import styles from './qr.module.css';
 export default function QrPage() {
     const [tableCount, setTableCount] = useState(12);
     const router = useRouter();
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    // 使用生產環境 URL，避免生成 localhost QR code
+    const baseUrl = typeof window !== 'undefined'
+        ? window.location.origin
+        : (process.env.NEXT_PUBLIC_BASE_URL || 'https://xin-yi-pos.vercel.app');
 
     const tables = Array.from({ length: tableCount }, (_, i) => i + 1);
 

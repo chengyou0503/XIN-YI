@@ -1,5 +1,8 @@
 # Stir-Fry POS 系統 - 專案文件
 
+# 輸出規格
+> **語言要求**：所有回覆、思考過程及任務清單必須使用**繁體中文**(zh-TW)。
+> **固定指令**：`Implementation Plan, Task List and Thought in **Traditional Chinese**`
 ## 專案概述
 
 新易現炒店點餐系統 (Stir-Fry POS) 是一個基於 Next.js 開發的餐廳點餐管理系統，整合 Firebase 作為後端資料庫和 LINE LIFF 作為前端使用者介面。
@@ -104,18 +107,18 @@ stir-fry-pos/
 
 ```bash
 # Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyBlJ8kU8aZyReaH6NP40G-uHeOTFXxwtfE
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xiyi-c4266.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=xiyi-c4266
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=xiyi-c4266.firebasestorage.app
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=355458948400
+NEXT_PUBLIC_FIREBASE_APP_ID=1:355458948400:web:87a5968f18525ff10bbcf5
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-B7QK18HY6N
 
 # LINE Configuration
-CHANNEL_ACCESS_TOKEN=your_channel_access_token
-CHANNEL_SECRET=your_channel_secret
-NEXT_PUBLIC_LINE_LIFF_ID=your_liff_id
+CHANNEL_ACCESS_TOKEN=z9rZzIn7yNRAjpTKEaOr97LdWatv01cuh0zddsKQFjf4crO3HTiLAfa574xRNRP10xRvWFEXdmLq+K/ZEIcehNEVU1SSekZCfwJE+BHlGb7ncDE+OJxKuRqdJ2tVEimV+UmrYJu6h9D5RFcLy1MZygdB04t89/1O/w1cDnyilFU=
+CHANNEL_SECRET=06c9612939f7987d1c9e9c42f285a5ab
+NEXT_PUBLIC_LINE_LIFF_ID=2007818450-kYXd68rR
 ```
 
 ### Vercel 環境變數
