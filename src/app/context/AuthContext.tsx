@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Initialize LIFF
         const initLiff = async () => {
             try {
-                const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID;
+                const liffId = (process.env.NEXT_PUBLIC_LINE_LIFF_ID || '').trim();
                 if (!liffId) {
                     console.warn('⚠️ LIFF ID 未設定，跳過 LINE 登入功能');
                     setIsLoading(false);
