@@ -163,9 +163,17 @@ export default function AdminPage() {
         e.preventDefault();
         if (!editingItem) return;
 
-        const updatedMenu = menuItems.map(m => m.id === editingItem.id ? editingItem : m);
-        if (isAddingNew && !menuItems.find(m => m.id === editingItem.id)) {
-            updatedMenu.push(editingItem);
+        // 確保使用當前的 editingItem（包含最新的 imageUrl）
+        const itemToSave = { ...editingItem };
+        console.log('💾 準備儲存餐點:', itemToSave.name);
+        console.log('🖼️ 圖片 URL:', itemToSave.imageUrl);
+
+        const updatedMenu = menuItems.map(m => m.id === itemToSave.id ? itemToSave : m);
+        if (isAddingNew && !menuItems.find(m => m.id === itemToSave.id)) {
+            updatedMenu.push(itemToSave);
+            console.log('➕ 新增餐點到菜單');
+        } else {
+            console.log('✏️ 更新現有餐點');
         }
 
         // 更新本地狀態
@@ -180,7 +188,8 @@ export default function AdminPage() {
         // 異步儲存到 Firebase（在背景執行）
         try {
             await StorageService.saveMenu(updatedMenu);
-            console.log('✅ 菜單已儲存');
+            console.log('✅ 菜單已成功儲存至 Firestore');
+            console.log('📊 儲存的餐點數量:', updatedMenu.length);
         } catch (error) {
             console.error('❌ 儲存失敗:', error);
             alert('儲存失敗，請重試');
@@ -222,10 +231,14 @@ export default function AdminPage() {
             ImageUploadService.validateImage(file);
 
             setIsUploading(true);
+            console.log('📤 開始上傳圖片...');
 
             // Upload to Firebase Storage
             const imagePath = `menu-items/${editingItem.id}-${Date.now()}`;
             const imageUrl = await ImageUploadService.uploadImage(file, imagePath);
+
+            console.log('✅ 圖片上傳成功！');
+            console.log('🔗 圖片 URL:', imageUrl);
 
             // Update editing item with new image URL
             setEditingItem({
@@ -233,9 +246,10 @@ export default function AdminPage() {
                 imageUrl,
             });
 
-            console.log('✅ 圖片上傳成功:', imageUrl);
+            console.log('✅ editingItem 已更新 imageUrl');
+            console.log('⚠️ 請記得點擊「儲存」按鈕以保存變更到 Firestore');
         } catch (error) {
-            console.error('圖片上傳失敗:', error);
+            console.error('❌ 圖片上傳失敗:', error);
             alert(error instanceof Error ? error.message : '圖片上傳失敗');
         } finally {
             setIsUploading(false);
