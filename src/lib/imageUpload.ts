@@ -10,20 +10,33 @@ export class ImageUploadService {
      */
     static async uploadImage(file: File, path: string): Promise<string> {
         try {
+            console.log('🔼 開始上傳圖片:', { fileName: file.name, size: file.size, path });
+
             // Create a storage reference
             const storageRef = ref(storage, path);
 
             // Upload the file
-            await uploadBytes(storageRef, file);
+            const uploadResult = await uploadBytes(storageRef, file);
+            console.log('✅ 圖片上傳完成:', uploadResult.metadata.fullPath);
 
             // Get the download URL
             const url = await getDownloadURL(storageRef);
 
-            console.log('圖片上傳成功:', url);
+            console.log('✅ 取得下載網址:', url);
             return url;
-        } catch (error) {
-            console.error('圖片上傳失敗:', error);
-            throw error;
+        } catch (error: any) {
+            console.error('❌ 圖片上傳失敗:', error);
+
+            // 提供更詳細的錯誤訊息
+            if (error.code === 'storage/unauthorized') {
+                throw new Error('圖片上傳失敗：沒有權限。請檢查 Firebase Storage 規則設定。');
+            } else if (error.code === 'storage/canceled') {
+                throw new Error('圖片上傳已取消');
+            } else if (error.code === 'storage/unknown') {
+                throw new Error('圖片上傳失敗：未知錯誤。請檢查網路連線和 Firebase 設定。');
+            }
+
+            throw new Error(`圖片上傳失敗: ${error.message || error.code || '未知錯誤'}`);
         }
     }
 

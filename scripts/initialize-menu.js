@@ -17,8 +17,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 匯入菜單資料
-const { MOCK_MENU } = require('./src/lib/mockData');
+// 匯入菜單資料（使用完整的 TypeScript 檔案並透過 require 讀取）
+const path = require('path');
+const { MOCK_MENU } = require(path.join(__dirname, '../src/lib/mockData.ts'));
 
 async function initializeMenu() {
     try {
