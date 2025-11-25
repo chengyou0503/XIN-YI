@@ -69,6 +69,6 @@ export default function QrPage() {
                     );
                 })}
             </div>
-        </div >
+        </div>
     );
 }
