@@ -640,18 +640,9 @@ export default function AdminPage() {
                             <div className={styles.emptyMenu}>
                                 <Utensils size={48} color="#bdc3c7" />
                                 <p>目前沒有菜單項目</p>
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                    <button className={styles.addBtn} onClick={startAdd}>
-                                        <Plus size={18} /> 新增第一個餐點
-                                    </button>
-                                    <button
-                                        className={styles.addBtn}
-                                        onClick={handleBatchImport}
-                                        style={{ backgroundColor: '#27ae60' }}
-                                    >
-                                        📥 快速載入預設菜單
-                                    </button>
-                                </div>
+                                <button className={styles.addBtn} onClick={startAdd}>
+                                    <Plus size={18} /> 新增餐點
+                                </button>
                             </div>
                         ) : (
                             <div className={styles.menuList}>

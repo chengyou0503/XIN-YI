@@ -34,9 +34,15 @@ export class StorageService {
             const menuSnapshot = await getDocs(menuCol);
 
             if (menuSnapshot.empty) {
+                console.log('📋 菜單為空，自動載入預設菜單...');
                 // Initialize with mock data if empty
                 await this.initializeMenu();
-                return MOCK_MENU;
+                // 再次查詢以獲取剛初始化的資料
+                const newSnapshot = await getDocs(menuCol);
+                return newSnapshot.docs.map(doc => ({
+                    ...doc.data(),
+                    id: doc.id
+                })) as MenuItem[];
             }
 
             return menuSnapshot.docs.map(doc => ({
@@ -45,17 +51,21 @@ export class StorageService {
             })) as MenuItem[];
         } catch (error) {
             console.error('Error getting menu:', error);
-            return MOCK_MENU;
+            // 發生錯誤時返回空陣列，避免顯示 MOCK_MENU 造成混淆
+            return [];
         }
     }
 
     static async initializeMenu(): Promise<void> {
         try {
-            console.log('📝 Initializing menu with', MOCK_MENU.length, 'items...');
-            await this.saveMenu(MOCK_MENU);
-            console.log('✅ Menu initialized successfully');
+            // 動態導入以避免循環依賴
+            const { MENU_DATA } = await import('./menuData');
+            console.log('📝 開始自動初始化菜單，共', MENU_DATA.length, '項...');
+            await this.saveMenu(MENU_DATA);
+            console.log('✅ 菜單初始化完成！');
         } catch (error) {
-            console.error('Error initializing menu:', error);
+            console.error('❌ 菜單初始化失敗:', error);
+            throw error;
         }
     }
 
