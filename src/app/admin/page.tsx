@@ -3,16 +3,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Order, MenuItem } from '@/types';
-import { CheckCircle, DollarSign, ChefHat, RefreshCw, Trash2, Utensils, Edit, Plus, X, Save, QrCode, Upload, LogOut } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Save, X, Utensils, LogOut, QrCode, CheckCircle, DollarSign, ChefHat } from 'lucide-react';
 import { StorageService } from '@/lib/storage';
 import { ImageUploadService } from '@/lib/imageUpload';
+import { MENU_DATA } from '@/lib/menuData'; // Import local data for instant load
 import { AdminAuthService } from '@/lib/adminAuth';
 import { CATEGORIES } from '@/lib/mockData';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
     const [orders, setOrders] = useState<Order[]>([]);
-    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    // Use local MENU_DATA as initial state for instant load
+    const [menuItems, setMenuItems] = useState<MenuItem[]>(MENU_DATA);
     const [activeTab, setActiveTab] = useState<'orders' | 'kitchen' | 'menu' | 'history'>('orders');
     const previousOrderCountRef = useRef(0);
     const isFirstLoad = useRef(true);
@@ -24,7 +26,8 @@ export default function AdminPage() {
     const [isUploading, setIsUploading] = useState(false);
 
     // Menu Management State
-    const [isLoadingMenu, setIsLoadingMenu] = useState(true);
+    // Start with false because we have local data
+    const [isLoadingMenu, setIsLoadingMenu] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('全部');
 
     const playNotificationSound = () => {
@@ -98,8 +101,11 @@ export default function AdminPage() {
 
         // Subscribe to real-time menu updates
         const unsubscribeMenu = StorageService.subscribeToMenu((newMenu) => {
-            console.log(`📋 收到菜單更新，共 ${newMenu.length} 項`);
-            setMenuItems(newMenu);
+            // Only update if we actually got data from Firebase
+            if (newMenu && newMenu.length > 0) {
+                console.log(`📋 Firebase 菜單同步完成，更新 ${newMenu.length} 項`);
+                setMenuItems(newMenu);
+            }
             setIsLoadingMenu(false);
         });
 

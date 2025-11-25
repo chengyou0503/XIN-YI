@@ -15,6 +15,12 @@ const firebaseConfig = {
 // Initialize Firebase only if it hasn't been initialized yet
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
-const storage = getStorage(app);
+
+// Fix: Explicitly pass the bucket URL to getStorage to avoid "No default bucket found" error
+const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'xiyi-c4266.firebasestorage.app';
+const storage = getStorage(app, `gs://${storageBucket}`);
+
+console.log('🔥 Firebase Initialized');
+console.log('📦 Storage Bucket:', storageBucket);
 
 export { db, storage };
