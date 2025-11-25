@@ -23,6 +23,10 @@ export default function AdminPage() {
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
+    // Menu Management State
+    const [isLoadingMenu, setIsLoadingMenu] = useState(true);
+    const [selectedCategory, setSelectedCategory] = useState<string>('全部');
+
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
 
@@ -96,6 +100,7 @@ export default function AdminPage() {
         const unsubscribeMenu = StorageService.subscribeToMenu((newMenu) => {
             console.log(`📋 收到菜單更新，共 ${newMenu.length} 項`);
             setMenuItems(newMenu);
+            setIsLoadingMenu(false);
         });
 
         return () => {
@@ -458,6 +463,32 @@ export default function AdminPage() {
                             </button>
                         </div>
 
+                        {/* Category Filter */}
+                        <div className={styles.categoryFilter}>
+                            <button
+                                className={`${styles.filterBtn} ${selectedCategory === '全部' ? styles.active : ''}`}
+                                onClick={() => setSelectedCategory('全部')}
+                            >
+                                全部 ({menuItems.length})
+                            </button>
+                            {CATEGORIES.map(cat => {
+                                const count = menuItems.filter(item => item.category === cat).length;
+                                return (
+                                    <button
+                                        key={cat}
+                                        className={`${styles.filterBtn} ${selectedCategory === cat ? styles.active : ''}`}
+                                        onClick={() => {
+                                            setSelectedCategory(cat);
+                                            const element = document.getElementById(`category-${cat}`);
+                                            element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        }}
+                                    >
+                                        {cat} ({count})
+                                    </button>
+                                );
+                            })}
+                        </div>
+
                         {editingItem && (
                             <div className={styles.modalOverlay}>
                                 <div className={styles.modal}>
@@ -597,56 +628,72 @@ export default function AdminPage() {
                             </div>
                         )}
 
-                        <div className={styles.menuList}>
-                            {CATEGORIES.map(category => {
-                                const itemsInCategory = menuItems.filter(item => item.category === category);
-                                if (itemsInCategory.length === 0) return null;
+                        {isLoadingMenu ? (
+                            <div className={styles.loadingContainer}>
+                                <div className={styles.spinner}></div>
+                                <p>載入菜單中...</p>
+                            </div>
+                        ) : menuItems.length === 0 ? (
+                            <div className={styles.emptyMenu}>
+                                <Utensils size={48} color="#bdc3c7" />
+                                <p>目前沒有菜單項目</p>
+                                <button className={styles.addBtn} onClick={startAdd}>
+                                    <Plus size={18} /> 新增第一個餐點
+                                </button>
+                            </div>
+                        ) : (
+                            <div className={styles.menuList}>
+                                {CATEGORIES.map(category => {
+                                    const itemsInCategory = menuItems.filter(item => item.category === category);
+                                    if (itemsInCategory.length === 0) return null;
+                                    if (selectedCategory !== '全部' && selectedCategory !== category) return null;
 
-                                return (
-                                    <div key={category} style={{ gridColumn: '1 / -1' }}>
-                                        <h3 style={{
-                                            fontSize: '1.3rem',
-                                            color: '#2d3436',
-                                            marginBottom: '1rem',
-                                            marginTop: '2rem',
-                                            paddingBottom: '0.5rem',
-                                            borderBottom: '3px solid #ff7675',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem'
-                                        }}>
-                                            <Utensils size={20} />
-                                            {category} ({itemsInCategory.length} 項)
-                                        </h3>
-                                        <div style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                                            gap: '1.5rem',
-                                            marginTop: '1rem'
-                                        }}>
-                                            {itemsInCategory.map(item => (
-                                                <div key={item.id} className={styles.menuItemCard}>
-                                                    <img src={item.imageUrl} alt={item.name} className={styles.itemThumb} onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.jpg'} />
-                                                    <div className={styles.itemInfo}>
-                                                        <h4>{item.name}</h4>
-                                                        <p>${item.price}</p>
-                                                        <span className={styles.categoryTag}>{item.category}</span>
+                                    return (
+                                        <div key={category} id={`category-${category}`} style={{ gridColumn: '1 / -1', scrollMarginTop: '100px' }}>
+                                            <h3 style={{
+                                                fontSize: '1.3rem',
+                                                color: '#2d3436',
+                                                marginBottom: '1rem',
+                                                marginTop: '2rem',
+                                                paddingBottom: '0.5rem',
+                                                borderBottom: '3px solid #ff7675',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem'
+                                            }}>
+                                                <Utensils size={20} />
+                                                {category} ({itemsInCategory.length} 項)
+                                            </h3>
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                                                gap: '1.5rem',
+                                                marginTop: '1rem'
+                                            }}>
+                                                {itemsInCategory.map(item => (
+                                                    <div key={item.id} className={styles.menuItemCard}>
+                                                        <img src={item.imageUrl} alt={item.name} className={styles.itemThumb} onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.jpg'} />
+                                                        <div className={styles.itemInfo}>
+                                                            <h4>{item.name}</h4>
+                                                            <p>${item.price}</p>
+                                                            <span className={styles.categoryTag}>{item.category}</span>
+                                                        </div>
+                                                        <div className={styles.itemActions}>
+                                                            <button onClick={() => startEdit(item)} className={styles.iconBtn} title="編輯">
+                                                                <Edit size={18} />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteItem(item.id)} className={styles.iconBtn} style={{ color: '#ff7675' }} title="刪除">
+                                                                <Trash2 size={18} />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div className={styles.itemActions}>
-                                                        <button onClick={() => startEdit(item)} className={styles.iconBtn} title="編輯">
-                                                            <Edit size={18} />
-                                                        </button>
-                                                        <button onClick={() => handleDeleteItem(item.id)} className={styles.iconBtn} style={{ color: '#ff7675' }} title="刪除">
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 )}
 
