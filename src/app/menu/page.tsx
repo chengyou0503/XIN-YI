@@ -33,18 +33,34 @@ function MenuPage() {
 
     useEffect(() => {
         // Load menu from Firestore
-        StorageService.getMenu().then(items => {
-            setMenuItems(items);
-            setIsLoading(false);
-        }).catch(err => {
-            console.error('Failed to load menu:', err);
-            setIsLoading(false);
-        });
+        const loadMenu = async () => {
+            try {
+                console.log('📋 開始載入菜單...');
+                const items = await StorageService.getMenu();
+                console.log('📋 菜單載入完成，項目數量:', items.length);
+
+                if (items && items.length > 0) {
+                    setMenuItems(items);
+                } else {
+                    console.warn('⚠️ 菜單資料為空，使用預設資料');
+                    // 如果 Firestore 沒有資料，使用本地預設資料
+                    setMenuItems(MENU_DATA);
+                }
+            } catch (err) {
+                console.error('❌ 載入菜單失敗:', err);
+                // 載入失敗時使用預設資料
+                setMenuItems(MENU_DATA);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadMenu();
     }, []);
 
     if (isLoading) {
         return (
-            <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '1rem' }}>
                 <div className="spinner" style={{
                     width: '40px',
                     height: '40px',
@@ -53,6 +69,7 @@ function MenuPage() {
                     borderRadius: '50%',
                     animation: 'spin 1s linear infinite'
                 }}></div>
+                <p style={{ color: '#666' }}>載入中...</p>
                 <style jsx>{`
                     @keyframes spin {
                         0% { transform: rotate(0deg); }
