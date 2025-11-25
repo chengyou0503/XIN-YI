@@ -276,18 +276,7 @@ function MenuPage() {
                 ))}
             </nav>
 
-            {!user && (
-                <div className={styles.linePromo}>
-                    <div className={styles.lineIcon}>LINE</div>
-                    <div className={styles.lineText}>
-                        <strong>加入會員享優惠</strong>
-                        <span>累積點數換好禮</span>
-                    </div>
-                    <button className={styles.lineBtn} onClick={login}>
-                        立即登入
-                    </button>
-                </div>
-            )}
+            {/* 已移除 LINE 推廣橫幅，因為用戶在進入時就會被要求加入好友 */}
 
             <div className={`${styles.menuGrid} animate-fade-in`}>
                 {filteredItems.map((item, index) => (
@@ -307,23 +296,36 @@ function MenuPage() {
                                 <span className={styles.itemPrice}>${item.price}</span>
                             </div>
                             <p className={styles.itemDesc}>{item.description}</p>
-                            <button
-                                className={`${styles.addBtn} ${getItemQuantityInCart(item.id) > 0 ? styles.addBtnActive : ''}`}
-                                onClick={() => addToCart(item)}
-                                disabled={!item.available}
-                            >
-                                {getItemQuantityInCart(item.id) > 0 ? (
-                                    <>
-                                        <Check size={20} />
-                                        已加入 {getItemQuantityInCart(item.id)}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Plus size={20} />
-                                        加入
-                                    </>
-                                )}
-                            </button>
+
+                            {/* 數量調整按鈕 */}
+                            {getItemQuantityInCart(item.id) > 0 ? (
+                                <div className={styles.quantityControl}>
+                                    <button
+                                        className={styles.quantityBtn}
+                                        onClick={() => removeFromCart(item.id)}
+                                    >
+                                        <Minus size={18} />
+                                    </button>
+                                    <span className={styles.quantityDisplay}>
+                                        {getItemQuantityInCart(item.id)}
+                                    </span>
+                                    <button
+                                        className={styles.quantityBtn}
+                                        onClick={() => addToCart(item)}
+                                    >
+                                        <Plus size={18} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    className={styles.addBtn}
+                                    onClick={() => addToCart(item)}
+                                    disabled={!item.available}
+                                >
+                                    <Plus size={20} />
+                                    加入
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
