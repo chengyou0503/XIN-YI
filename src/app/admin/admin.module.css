@@ -427,8 +427,8 @@
     border-radius: 16px;
     width: 90%;
     max-width: 500px;
-    max-height: 90vh;
-    /* 限制最大高度為視窗高度的 90% */
+    max-height: 85vh;
+    /* 限制最大高度為視窗高度的 85% */
     overflow-y: auto;
     /* 內容過長時顯示捲軸 */
     position: relative;
@@ -436,6 +436,8 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
+    margin: auto;
+    /* Ensure centering */
 }
 
 .modal h3 {

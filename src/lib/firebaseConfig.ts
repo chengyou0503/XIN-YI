@@ -2,11 +2,13 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
+const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'xiyi-c4266.firebasestorage.app';
+
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    storageBucket: storageBucket, // Use the fallback variable
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
@@ -17,7 +19,6 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 const db = getFirestore(app);
 
 // Fix: Explicitly pass the bucket URL to getStorage to avoid "No default bucket found" error
-const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'xiyi-c4266.firebasestorage.app';
 const storage = getStorage(app, `gs://${storageBucket}`);
 
 console.log('🔥 Firebase Initialized');

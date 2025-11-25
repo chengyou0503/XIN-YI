@@ -29,12 +29,39 @@ function MenuPage() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [showFriendInvite, setShowFriendInvite] = useState(false);
 
+    const [isLoading, setIsLoading] = useState(true);
+
     useEffect(() => {
         // Load menu from Firestore
         StorageService.getMenu().then(items => {
             setMenuItems(items);
+            setIsLoading(false);
+        }).catch(err => {
+            console.error('Failed to load menu:', err);
+            setIsLoading(false);
         });
     }, []);
+
+    if (isLoading) {
+        return (
+            <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <div className="spinner" style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '4px solid #f3f3f3',
+                    borderTop: '4px solid #2d3436',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                }}></div>
+                <style jsx>{`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `}</style>
+            </div>
+        );
+    }
 
     // Check friend status and show invite modal
     useEffect(() => {
