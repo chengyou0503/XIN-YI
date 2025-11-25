@@ -155,11 +155,20 @@ export default function AdminPage() {
         if (isAddingNew && !menuItems.find(m => m.id === editingItem.id)) {
             updatedMenu.push(editingItem);
         }
+
+        // 先更新本地狀態並關閉 modal
         setMenuItems(updatedMenu);
-        await StorageService.saveMenu(updatedMenu);
-        // Close modal after saving
         setEditingItem(null);
         setIsAddingNew(false);
+
+        // 異步儲存到 Firebase（在背景執行）
+        try {
+            await StorageService.saveMenu(updatedMenu);
+            console.log('✅ 菜單已儲存');
+        } catch (error) {
+            console.error('❌ 儲存失敗:', error);
+            alert('儲存失敗，請重試');
+        }
     };
 
     const handleDeleteItem = async (id: string) => {

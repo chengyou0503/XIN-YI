@@ -46,29 +46,29 @@ export default function QrPage() {
                 </div>
             </header>
 
-            <div className={styles.grid}>
-                {tables.map(tableId => {
-                    // Construct LIFF URL with table param
-                    // Format: https://liff.line.me/{liffId}?table={tableId}
-                    const qrData = `${liffUrl}?table=${tableId}`;
+            \u003cdiv className={styles.grid}>
+            {tables.map(tableId => {
+                // 直接使用應用程式 URL，不依賴 LIFF
+                // 格式: https://xin-yi-pos.vercel.app/menu?table={tableId}
+                const qrData = `${baseUrl}/menu?table=${tableId}`;
 
-                    return (
-                        <div key={tableId} className={styles.qrCard}>
-                            <h2 className={styles.tableTitle}>桌號 {tableId}</h2>
-                            <div className={styles.qrWrapper}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`}
-                                    alt={`桌號 ${tableId} QR Code`}
-                                    className={styles.qrImage}
-                                />
-                            </div>
-                            <p className={styles.instruction}>請使用 LINE 掃描點餐</p>
-                            <p className={styles.url}>桌號: {tableId}</p>
+                return (
+                    <div key={tableId} className={styles.qrCard}>
+                        <h2 className={styles.tableTitle}>桌號 {tableId}</h2>
+                        <div className={styles.qrWrapper}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`}
+                                alt={`桌號 ${tableId} QR Code`}
+                                className={styles.qrImage}
+                            />
                         </div>
-                    );
-                })}
-            </div>
+                        <p className={styles.instruction}>請使用 LINE 掃描點餐</p>
+                        <p className={styles.url}>桌號: {tableId}</p>
+                    </div>
+                );
+            })}
         </div>
+        </div >
     );
 }
