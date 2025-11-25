@@ -520,6 +520,7 @@
         transform: translateY(0);
     }
 }
+
 .cartItemOptions {
     display: block;
     color: #666;
@@ -620,7 +621,9 @@
     gap: 1rem;
 }
 
-.cancelBtn, .confirmBtn, .secondaryBtn {
+.cancelBtn,
+.confirmBtn,
+.secondaryBtn {
     flex: 1;
     padding: 1rem;
     border: none;
@@ -631,12 +634,14 @@
     transition: all 0.2s ease;
 }
 
-.cancelBtn, .secondaryBtn {
+.cancelBtn,
+.secondaryBtn {
     background: #f1f2f6;
     color: #636e72;
 }
 
-.cancelBtn:active, .secondaryBtn:active {
+.cancelBtn:active,
+.secondaryBtn:active {
     transform: scale(0.96);
 }
 
@@ -736,9 +741,12 @@
 }
 
 @keyframes bounce {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-10px);
     }
@@ -746,8 +754,11 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+
+    /* 保持兩欄布局，調整間距 */
     .menuGrid {
-        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 0 0.75rem;
     }
 
     .friendInviteCard {
