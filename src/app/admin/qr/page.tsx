@@ -51,9 +51,12 @@ export default function QrPage() {
 
             <div className={styles.grid}>
                 {tables.map(tableId => {
-                    // 直接使用應用程式 URL，不依賴 LIFF
-                    // 格式: https://xin-yi-pos.vercel.app/menu?table={tableId}
-                    const qrData = `${baseUrl}/menu?table=${tableId}`;
+                    // 使用 LIFF URL 格式，讓 LINE App 能自動授權
+                    // 格式: https://liff.line.me/{liffId}?liff.state=/menu?table={tableId}
+                    const liffIdTrimmed = (liffId || '').trim();
+                    const qrData = liffIdTrimmed
+                        ? `https://liff.line.me/${liffIdTrimmed}?liff.state=${encodeURIComponent(`/menu?table=${tableId}`)}`
+                        : `${baseUrl}/menu?table=${tableId}`; // 備用方案
 
                     return (
                         <div key={tableId} className={styles.qrCard}>
