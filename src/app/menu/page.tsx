@@ -104,50 +104,39 @@ function MenuPage() {
         );
     }
 
-    // Check friend status and redirect to add friend page if needed
+    // Check friend status and show invite modal
     useEffect(() => {
-        const hasShownAddFriend = sessionStorage.getItem('hasShownAddFriend');
-
-        if (user && !isFriend && !hasShownAddFriend) {
-            // 標記已經顯示過，避免無限循環
-            sessionStorage.setItem('hasShownAddFriend', 'true');
-
-            // 直接重定向到 LINE 加好友頁面 (原生體驗)
-            // TODO: 請將下方的 @YOUR_LINE_ID 替換成您的 LINE Official Account Basic ID
-            // 格式範例: @123abcde
-            // 可在 LINE Official Account Manager > 設定 > 帳號設定 中找到
-            const lineOfficialAccountId = '@080pkuoh'; // 新易現炒 LINE 官方帳號
-            const addFriendUrl = `https://line.me/R/ti/p/${lineOfficialAccountId}`;
-
-            console.log('🔗 用戶尚未加好友，重定向至 LINE 加好友頁面:', addFriendUrl);
-
-            // 直接重定向到 LINE 加好友頁面
-            window.location.href = addFriendUrl;
+        if (user && !isFriend) {
+            // Show friend invite modal after a short delay
+            const timer = setTimeout(() => {
+                setShowFriendInvite(true);
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else {
+            setShowFriendInvite(false);
         }
     }, [user, isFriend]);
 
     const filteredItems = menuItems.filter(item => item.category === activeCategory);
 
     const handleOpenOfficialAccount = () => {
-        // 直接使用 LIFF 原生 API 開啟 LINE 加好友頁面
+        // 使用 LIFF 原生 API 開啟 LINE 加好友頁面
         if (typeof window !== 'undefined' && (window as any).liff) {
             const liff = (window as any).liff;
+            const lineOfficialAccountId = '@080pkuoh'; // 新易現炒 LINE 官方帳號
+            const addFriendUrl = `https://line.me/R/ti/p/${lineOfficialAccountId}`;
 
-            // 方法 1: 使用 LIFF 的 openWindow 打開加好友頁面
-            // 需要您的 LINE Official Account URL，格式: https://line.me/R/ti/p/@your_bot_id
-            // 這個 ID 可以在 LINE Official Account Manager 找到
+            console.log('📱 引導用戶加入 LINE 好友:', addFriendUrl);
 
-            // 取得當前 LIFF 的 Context 來獲取 LINE Official Account
-            liff.getContext().then((context: any) => {
-                console.log('LIFF Context:', context);
+            // 在外部瀏覽器開啟加好友頁面
+            // 用戶加完好友後會留在 LINE 中，可以重新掃描 QR Code
+            liff.openWindow({
+                url: addFriendUrl,
+                external: true  // 在外部瀏覽器開啟
             });
 
-            // 方法 2: 直接關閉 LIFF 視窗並提示用戶加好友（推薦）
-            // 這會讓用戶回到 LINE 聊天畫面，然後可以手動加好友
-            alert('請在 LINE 中搜尋「新易現炒」並加為好友，即可享受訂單通知服務！');
-
-            // 關閉 LIFF 視窗
-            liff.closeWindow();
+            // 關閉彈窗，讓用戶可以繼續瀏覽菜單
+            setShowFriendInvite(false);
         } else {
             // 如果不在 LIFF 環境（例如在瀏覽器中測試）
             alert('請在 LINE 應用程式中開啟此頁面');
