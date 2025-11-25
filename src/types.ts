@@ -28,4 +28,13 @@ export interface Order {
     createdAt: Date;
 }
 
-export type Category = '鐵板類' | '燴飯類' | '現炒類' | '三杯類' | '炒飯類' | '湯麵類' | '湯類' | '蔬菜類' | '飲料類';
+// 分類項目介面（用於 Firestore）
+export interface CategoryItem {
+    id: string;           // 分類唯一識別碼
+    name: string;         // 分類名稱（如：鐵板類）
+    displayOrder: number; // 顯示順序
+    createdAt: Date;      // 建立時間
+}
+
+// 分類型別（動態字串，支援任意分類名稱）
+export type Category = string;

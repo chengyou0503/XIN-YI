@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Order, MenuItem } from '@/types';
+import { Order, MenuItem, CategoryItem } from '@/types';
 import { Plus, Edit, Trash2, Upload, Save, X, Utensils, LogOut, QrCode, CheckCircle, DollarSign, ChefHat } from 'lucide-react';
 import { StorageService } from '@/lib/storage';
 import { ImageUploadService } from '@/lib/imageUpload';
@@ -15,7 +15,7 @@ export default function AdminPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     // Use local MENU_DATA as initial state for instant load
     const [menuItems, setMenuItems] = useState<MenuItem[]>(MENU_DATA);
-    const [activeTab, setActiveTab] = useState<'orders' | 'kitchen' | 'menu' | 'history'>('orders');
+    const [activeTab, setActiveTab] = useState<'orders' | 'kitchen' | 'menu' | 'history' | 'categories'>('orders');
     const previousOrderCountRef = useRef(0);
     const isFirstLoad = useRef(true);
     const router = useRouter();
@@ -29,6 +29,11 @@ export default function AdminPage() {
     // Start with false because we have local data
     const [isLoadingMenu, setIsLoadingMenu] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('全部');
+
+    // Category Management State
+    const [categories, setCategories] = useState<CategoryItem[]>([]);
+    const [isAddingCategory, setIsAddingCategory] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
 
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
@@ -109,10 +114,17 @@ export default function AdminPage() {
             setIsLoadingMenu(false);
         });
 
+        // Subscribe to real-time categories updates
+        const unsubscribeCategories = StorageService.subscribeToCategories((newCategories) => {
+            console.log(`📂 分類更新，共 ${newCategories.length} 個`);
+            setCategories(newCategories);
+        });
+
         return () => {
             console.log('🔌 取消 Firestore 監聽');
             unsubscribeOrders();
             unsubscribeMenu();
+            unsubscribeCategories();
         };
     }, [router]);
 
@@ -326,6 +338,47 @@ export default function AdminPage() {
         }
     };
 
+    // Category Management Functions
+    const handleAddCategory = async () => {
+        if (!newCategoryName.trim()) {
+            alert('請輸入分類名稱');
+            return;
+        }
+
+        // Check for duplicates
+        if (categories.some(cat => cat.name === newCategoryName.trim())) {
+            alert('此分類已存在！');
+            return;
+        }
+
+        try {
+            const newCategory: CategoryItem = {
+                id: `cat-${Date.now()}`,
+                name: newCategoryName.trim(),
+                displayOrder: categories.length,
+                createdAt: new Date(),
+            };
+
+            await StorageService.saveCategory(newCategory);
+            setNewCategoryName('');
+            setIsAddingCategory(false);
+            console.log('✅ 分類已新增:', newCategory.name);
+        } catch (error) {
+            console.error('新增分類失敗:', error);
+            alert('新增分類失敗，請重試');
+        }
+    };
+
+    const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
+        try {
+            await StorageService.deleteCategory(categoryId);
+            console.log('✅ 分類已刪除:', categoryName);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '刪除失敗';
+            alert(errorMessage);
+        }
+    };
+
     // Filter orders for active view (exclude served/history)
     const activeOrders = orders.filter(o => o.status !== 'served');
 
@@ -388,6 +441,12 @@ export default function AdminPage() {
                         onClick={() => setActiveTab('history')}
                     >
                         歷史帳務
+                    </button>
+                    <button
+                        className={`${styles.navBtn} ${activeTab === 'categories' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('categories')}
+                    >
+                        分類管理
                     </button>
                     <button
                         className={styles.navBtn}
@@ -809,6 +868,96 @@ export default function AdminPage() {
                                 </table>
                             )}
                         </div>
+                    </div>
+                )}
+
+                {activeTab === 'categories' && (
+                    <div className={styles.categoryManagement}>
+                        <div className={styles.menuHeader}>
+                            <h2>分類管理</h2>
+                            <button className={styles.addBtn} onClick={() => setIsAddingCategory(true)}>
+                                <Plus size={18} /> 新增分類
+                            </button>
+                        </div>
+
+                        {categories.length === 0 ? (
+                            <div className={styles.emptyMenu}>
+                                <Utensils size={48} color="#bdc3c7" />
+                                <p>目前沒有分類</p>
+                                <button className={styles.addBtn} onClick={() => setIsAddingCategory(true)}>
+                                    <Plus size={18} /> 新增分類
+                                </button>
+                            </div>
+                        ) : (
+                            <div className={styles.categoryList}>
+                                {categories.map((category, index) => {
+                                    const usageCount = menuItems.filter(item => item.category === category.name).length;
+                                    return (
+                                        <div key={category.id} className={styles.categoryCard}>
+                                            <div className={styles.categoryInfo}>
+                                                <div className={styles.categoryOrder}>#{index + 1}</div>
+                                                <div className={styles.categoryDetails}>
+                                                    <h4>{category.name}</h4>
+                                                    <small>{usageCount} 個菜單項目使用</small>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm(`確定要刪除「${category.name}」分類嗎？`)) {
+                                                        handleDeleteCategory(category.id, category.name);
+                                                    }
+                                                }}
+                                                className={styles.iconBtn}
+                                                style={{ color: '#ff7675' }}
+                                                title="刪除分類"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Add Category Modal */}
+                        {isAddingCategory && (
+                            <div className={styles.modalOverlay}>
+                                <div className={styles.modal}>
+                                    <h3>新增分類</h3>
+                                    <div className={styles.editForm}>
+                                        <label>
+                                            分類名稱:
+                                            <input
+                                                type="text"
+                                                value={newCategoryName}
+                                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                                placeholder="例如：甜點類"
+                                                autoFocus
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleAddCategory();
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
+                                    <div className={styles.modalFooter} style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                                        <button
+                                            onClick={() => {
+                                                setIsAddingCategory(false);
+                                                setNewCategoryName('');
+                                            }}
+                                            className={styles.cancelBtn}
+                                        >
+                                            取消
+                                        </button>
+                                        <button onClick={handleAddCategory} className={styles.saveBtn}>
+                                            新增
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

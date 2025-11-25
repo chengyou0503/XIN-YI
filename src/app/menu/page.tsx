@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/lib/mockData';
-import { MenuItem, CartItem, Category, MenuOption } from '@/types';
+import { MenuItem, CartItem, Category, MenuOption, CategoryItem } from '@/types';
 import { ShoppingCart, Plus, Minus, X, Utensils, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { StorageService } from '@/lib/storage';
@@ -33,6 +33,16 @@ function MenuPage() {
 
     const [isLoading, setIsLoading] = useState(false); // 改為 false，因為已有預設資料
 
+    // 動態分類狀態
+    const [categories, setCategories] = useState<string[]>(['鐵板類', '燴飯類', '現炒類', '三杯類', '炒飯類', '湯麵類', '湯類', '蔬菜類', '飲料類']);
+
+    // 輔助函數：計算購物車中該商品的數量
+    const getItemQuantityInCart = (itemId: string): number => {
+        return cart
+            .filter(cartItem => cartItem.id === itemId)
+            .reduce((sum, cartItem) => sum + cartItem.quantity, 0);
+    };
+
     useEffect(() => {
         // 在背景載入 Firestore 菜單資料
         const loadMenu = async () => {
@@ -54,7 +64,23 @@ function MenuPage() {
 
         // 延遲載入，避免阻塞 UI
         setTimeout(loadMenu, 100);
-    }, []);
+
+        // 訂閱分類更新
+        const unsubscribeCategories = StorageService.subscribeToCategories((categoryItems) => {
+            console.log('📂 分類更新，共', categoryItems.length, '個');
+            const categoryNames = categoryItems.map(cat => cat.name);
+            setCategories(categoryNames);
+
+            // 如果當前分類不在新分類列表中，切換到第一個分類
+            if (categoryNames.length > 0 && !categoryNames.includes(activeCategory)) {
+                setActiveCategory(categoryNames[0]);
+            }
+        });
+
+        return () => {
+            unsubscribeCategories();
+        };
+    }, [activeCategory]);
 
     if (isLoading) {
         return (
@@ -239,7 +265,7 @@ function MenuPage() {
             </header>
 
             <nav className={styles.categoryNav}>
-                {CATEGORIES.map(cat => (
+                {categories.map(cat => (
                     <button
                         key={cat}
                         className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
@@ -282,12 +308,21 @@ function MenuPage() {
                             </div>
                             <p className={styles.itemDesc}>{item.description}</p>
                             <button
-                                className={styles.addBtn}
+                                className={`${styles.addBtn} ${getItemQuantityInCart(item.id) > 0 ? styles.addBtnActive : ''}`}
                                 onClick={() => addToCart(item)}
                                 disabled={!item.available}
                             >
-                                <Plus size={20} />
-                                加入
+                                {getItemQuantityInCart(item.id) > 0 ? (
+                                    <>
+                                        <Check size={20} />
+                                        已加入 {getItemQuantityInCart(item.id)}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus size={20} />
+                                        加入
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

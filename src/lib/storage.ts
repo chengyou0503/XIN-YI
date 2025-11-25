@@ -1,4 +1,4 @@
-import { MenuItem, Order, CartItem } from '../types';
+import { MenuItem, Order, CartItem, CategoryItem } from '../types';
 import { MOCK_MENU } from './mockData';
 import { db } from './firebaseConfig';
 import {
@@ -18,14 +18,17 @@ import {
 const COLLECTIONS = {
     MENU: 'menu',
     ORDERS: 'orders',
+    CATEGORIES: 'categories',
 };
 
 type OrdersCallback = (orders: Order[]) => void;
 type MenuCallback = (menu: MenuItem[]) => void;
+type CategoriesCallback = (categories: CategoryItem[]) => void;
 
 export class StorageService {
     private static ordersUnsubscribe: (() => void) | null = null;
     private static menuUnsubscribe: (() => void) | null = null;
+    private static categoriesUnsubscribe: (() => void) | null = null;
 
     // Menu Methods
     static async getMenu(): Promise<MenuItem[]> {
@@ -202,6 +205,121 @@ export class StorageService {
         if (this.ordersUnsubscribe) {
             this.ordersUnsubscribe();
             this.ordersUnsubscribe = null;
+        }
+    }
+
+    // Category Methods
+    static async getCategories(): Promise<CategoryItem[]> {
+        try {
+            const categoriesCol = collection(db, COLLECTIONS.CATEGORIES);
+            const q = query(categoriesCol, orderBy('displayOrder', 'asc'));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                console.log('📂 分類為空，自動初始化預設分類...');
+                await this.initializeCategories();
+                const newSnapshot = await getDocs(q);
+                return newSnapshot.docs.map(doc => ({
+                    ...doc.data(),
+                    id: doc.id,
+                    createdAt: doc.data().createdAt instanceof Timestamp
+                        ? doc.data().createdAt.toDate()
+                        : new Date(doc.data().createdAt)
+                })) as CategoryItem[];
+            }
+
+            return snapshot.docs.map(doc => ({
+                ...doc.data(),
+                id: doc.id,
+                createdAt: doc.data().createdAt instanceof Timestamp
+                    ? doc.data().createdAt.toDate()
+                    : new Date(doc.data().createdAt)
+            })) as CategoryItem[];
+        } catch (error) {
+            console.error('Error getting categories:', error);
+            return [];
+        }
+    }
+
+    static async initializeCategories(): Promise<void> {
+        try {
+            const { CATEGORIES } = await import('./mockData');
+            console.log('📝 開始初始化分類，共', CATEGORIES.length, '個...');
+
+            const batch = CATEGORIES.map((name, index) => {
+                const category: CategoryItem = {
+                    id: `cat-${Date.now()}-${index}`,
+                    name,
+                    displayOrder: index,
+                    createdAt: new Date(),
+                };
+                return setDoc(doc(db, COLLECTIONS.CATEGORIES, category.id), {
+                    ...category,
+                    createdAt: Timestamp.fromDate(category.createdAt)
+                });
+            });
+
+            await Promise.all(batch);
+            console.log('✅ 分類初始化完成！');
+        } catch (error) {
+            console.error('❌ 分類初始化失敗:', error);
+            throw error;
+        }
+    }
+
+    static async saveCategory(category: CategoryItem): Promise<void> {
+        try {
+            await setDoc(doc(db, COLLECTIONS.CATEGORIES, category.id), {
+                ...category,
+                createdAt: category.createdAt instanceof Date
+                    ? Timestamp.fromDate(category.createdAt)
+                    : category.createdAt
+            });
+        } catch (error) {
+            console.error('Error saving category:', error);
+            throw error;
+        }
+    }
+
+    static async deleteCategory(categoryId: string): Promise<void> {
+        try {
+            // Check if any menu items use this category
+            const menuItems = await this.getMenu();
+            const category = (await getDoc(doc(db, COLLECTIONS.CATEGORIES, categoryId))).data() as CategoryItem;
+            const usageCount = menuItems.filter(item => item.category === category?.name).length;
+
+            if (usageCount > 0) {
+                throw new Error(`此分類正被 ${usageCount} 個菜單項目使用，無法刪除`);
+            }
+
+            await deleteDoc(doc(db, COLLECTIONS.CATEGORIES, categoryId));
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            throw error;
+        }
+    }
+
+    static subscribeToCategories(callback: CategoriesCallback) {
+        const q = query(collection(db, COLLECTIONS.CATEGORIES), orderBy('displayOrder', 'asc'));
+
+        this.categoriesUnsubscribe = onSnapshot(q, (snapshot) => {
+            const categories = snapshot.docs.map(doc => ({
+                ...doc.data(),
+                id: doc.id,
+                createdAt: doc.data().createdAt instanceof Timestamp
+                    ? doc.data().createdAt.toDate()
+                    : new Date(doc.data().createdAt)
+            })) as CategoryItem[];
+            callback(categories);
+        });
+
+        return this.categoriesUnsubscribe;
+    }
+
+    static unsubscribeFromCategories() {
+        if (this.categoriesUnsubscribe) {
+            this.categoriesUnsubscribe();
+            this.categoriesUnsubscribe = null;
         }
     }
 }

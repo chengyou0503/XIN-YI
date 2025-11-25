@@ -248,6 +248,15 @@
     cursor: not-allowed;
 }
 
+.addBtnActive {
+    background-color: #00b894 !important;
+    color: white !important;
+}
+
+.addBtnActive:not(:disabled):hover {
+    background-color: #00a383 !important;
+}
+
 /* FAB Container & Button */
 .fabContainer {
     position: fixed;
