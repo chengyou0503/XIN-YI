@@ -116,7 +116,7 @@ function MenuPage() {
             // TODO: 請將下方的 @YOUR_LINE_ID 替換成您的 LINE Official Account Basic ID
             // 格式範例: @123abcde
             // 可在 LINE Official Account Manager > 設定 > 帳號設定 中找到
-            const lineOfficialAccountId = '@YOUR_LINE_ID'; // 請替換成您的 ID
+            const lineOfficialAccountId = '@080pkuoh'; // 新易現炒 LINE 官方帳號
             const addFriendUrl = `https://line.me/R/ti/p/${lineOfficialAccountId}`;
 
             console.log('🔗 用戶尚未加好友，重定向至 LINE 加好友頁面:', addFriendUrl);
