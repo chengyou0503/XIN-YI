@@ -18,8 +18,8 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 
-// Fix: Explicitly pass the bucket URL to getStorage to avoid "No default bucket found" error
-const storage = getStorage(app, `gs://${storageBucket}`);
+// Fix: Use the bucket from config directly to avoid encoding issues
+const storage = getStorage(app);
 
 console.log('🔥 Firebase Initialized');
 console.log('📦 Storage Bucket:', storageBucket);
