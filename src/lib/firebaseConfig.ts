@@ -2,7 +2,8 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'xiyi-c4266.firebasestorage.app';
+// 硬編碼 bucket 名稱以避免環境變數中可能存在的換行符
+const storageBucket = 'xiyi-c4266.firebasestorage.app';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

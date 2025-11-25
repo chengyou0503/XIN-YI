@@ -1,5 +1,6 @@
+
 import { storage } from './firebaseConfig';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export class ImageUploadService {
     /**
@@ -36,7 +37,31 @@ export class ImageUploadService {
                 throw new Error('圖片上傳失敗：未知錯誤。請檢查網路連線和 Firebase 設定。');
             }
 
-            throw new Error(`圖片上傳失敗: ${error.message || error.code || '未知錯誤'}`);
+            throw new Error(`圖片上傳失敗: ${error.message || error.code || '未知錯誤'} `);
+        }
+    }
+
+    /**
+     * Delete an image from Firebase Storage given its download URL.
+     * @param url - The download URL of the image to delete.
+     */
+    static async deleteImage(url: string): Promise<void> {
+        try {
+            // 從 Firebase Storage URL 中提取路徑
+            // URL 格式: https://firebasestorage.googleapis.com/v0/b/BUCKET/o/PATH?alt=media&token=...
+            const urlObj = new URL(url);
+            const pathMatch = urlObj.pathname.match(/\/o\/(.+)/);
+            if (!pathMatch) {
+                throw new Error('無法從 URL 解析路徑');
+            }
+            // URL decode 路徑
+            const imagePath = decodeURIComponent(pathMatch[1]);
+            const storageRef = ref(storage, imagePath);
+            await deleteObject(storageRef);
+            console.log('✅ 圖片已刪除:', url);
+        } catch (error) {
+            console.error('❌ 刪除圖片失敗:', error);
+            // 不拋出錯誤，僅記錄，因為刪除失敗不應阻止其他操作
         }
     }
 

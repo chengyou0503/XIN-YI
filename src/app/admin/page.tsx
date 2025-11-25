@@ -157,6 +157,7 @@ export default function AdminPage() {
         }
         setMenuItems(updatedMenu);
         await StorageService.saveMenu(updatedMenu);
+        // Close modal after saving
         setEditingItem(null);
         setIsAddingNew(false);
     };
@@ -215,6 +216,22 @@ export default function AdminPage() {
             setIsUploading(false);
         }
     };
+
+    const handleDeleteImage = async () => {
+        if (!editingItem) return;
+        if (!editingItem.imageUrl || editingItem.imageUrl === '/placeholder.jpg') {
+            alert('目前沒有圖片可刪除');
+            return;
+        }
+        if (!confirm('確定要刪除目前的圖片嗎？')) return;
+        try {
+            await ImageUploadService.deleteImage(editingItem.imageUrl);
+            setEditingItem({ ...editingItem, imageUrl: '/placeholder.jpg' });
+        } catch (e) {
+            console.error('刪除圖片失敗', e);
+            alert('刪除圖片失敗');
+        }
+    };
     const getStatusColor = (status: Order['status']) => {
         switch (status) {
             case 'pending': return '#9E9E9E'; // Grey
@@ -235,6 +252,7 @@ export default function AdminPage() {
 
     const handleDeleteItemFromOrder = async (order: Order, itemIndex: number) => {
         if (!confirm(`確定要刪除 ${order.items[itemIndex].name} 嗎？`)) return;
+
 
         const newItems = [...order.items];
         newItems.splice(itemIndex, 1);
@@ -538,12 +556,21 @@ export default function AdminPage() {
                                             圖片
                                             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                                                 {editingItem.imageUrl && editingItem.imageUrl !== '/placeholder.jpg' && (
-                                                    <img
-                                                        src={editingItem.imageUrl}
-                                                        alt="預覽"
-                                                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }}
-                                                        onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.jpg'}
-                                                    />
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <img
+                                                            src={editingItem.imageUrl}
+                                                            alt="預覽"
+                                                            style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }}
+                                                            onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.jpg'}
+                                                        />
+                                                        <button type="button" onClick={handleDeleteImage} style={{
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            color: '#e74c3c',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.9rem'
+                                                        }}>刪除圖片</button>
+                                                    </div>
                                                 )}
                                                 <label htmlFor="image-upload" style={{
                                                     display: 'inline-flex',
