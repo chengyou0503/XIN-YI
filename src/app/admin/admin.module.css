@@ -631,6 +631,85 @@
     color: #2d3436;
 }
 
+/* Category Section in Menu Management */
+.categorySection {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.categorySection h3 {
+    margin: 0 0 1rem 0;
+    color: #2d3436;
+    font-size: 1.2rem;
+}
+
+.categoryTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.categoryTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.categoryTag span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.categoryDeleteBtn {
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+}
+
+.categoryDeleteBtn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.addCategoryBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f1f2f6;
+    color: #2d3436;
+    border: 2px dashed #dfe6e9;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.addCategoryBtn:hover {
+    background: #2d3436;
+    color: white;
+    border-color: #2d3436;
+}
+
 /* Header Actions */
 .headerActions {
     display: flex;
