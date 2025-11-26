@@ -168,6 +168,15 @@ export async function POST(req: NextRequest) {
             }
         };
 
+        console.log('📤 準備調用 LINE Push Message API...');
+        console.log('👤 Target User ID:', userId);
+
+        const pushResponse = await client.pushMessage(userId, flexMessage);
+
+        console.log('========== ✅ LINE API 回應 ==========');
+        console.log('回應狀態:', pushResponse);
+        console.log('========================================');
+
         console.log('✅ LINE Push Message 發送成功');
         return NextResponse.json({ success: true, message: 'Push message sent successfully' });
     } catch (error: any) {
