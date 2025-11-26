@@ -1410,3 +1410,61 @@
     color: white;
     border-color: #636e72;
 }
+
+/* Tablet Optimization (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .ordersGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .menuList {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .kitchenView {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .navBtn {
+        font-size: 1rem;
+        padding: 0.85rem 1.25rem;
+        min-height: 48px;
+    }
+
+    .actionBtn, .cookBtn {
+        font-size: 1rem;
+        padding: 0.7rem 1rem;
+        min-height: 44px;
+    }
+
+    .orderCard, .kitchenTicket, .menuCard {
+        font-size: 1rem;
+    }
+
+    .modal {
+        max-width: 700px;
+        padding: 2rem;
+    }
+
+    .editForm input, .editForm select, .editForm textarea {
+        font-size: 1rem;
+        padding: 0.8rem;
+        min-height: 44px;
+    }
+}
+
+/* Touch-friendly improvements for all mobile devices */
+@media (max-width: 1024px) {
+    button, .navBtn, .actionBtn {
+        min-height: 44px;
+        padding: 0.7rem 1rem;
+    }
+
+    input, select, textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}

@@ -35,6 +35,10 @@ export default function AdminPage() {
     const [isManagingCategories, setIsManagingCategories] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
 
+    // Order Editing State
+    const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+    const [editingOrderItems, setEditingOrderItems] = useState<Order['items']>([]);
+
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
 
@@ -336,6 +340,61 @@ export default function AdminPage() {
         }
     };
 
+    const startEditOrder = (order: Order) => {
+        setEditingOrder(order);
+        setEditingOrderItems([...order.items]);
+    };
+
+    const handleAddItemToEditingOrder = (item: MenuItem) => {
+        const existing = editingOrderItems.find(i => i.id === item.id);
+        if (existing) {
+            setEditingOrderItems(editingOrderItems.map(i =>
+                i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+            ));
+        } else {
+            setEditingOrderItems([...editingOrderItems, { ...item, quantity: 1 }]);
+        }
+    };
+
+    const handleUpdateEditingItemQuantity = (itemId: string, change: number) => {
+        setEditingOrderItems(editingOrderItems.map(item => {
+            if (item.id === itemId) {
+                const newQuantity = item.quantity + change;
+                return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
+            }
+            return item;
+        }).filter(item => item.quantity > 0));
+    };
+
+    const handleRemoveEditingItem = (itemId: string) => {
+        setEditingOrderItems(editingOrderItems.filter(item => item.id !== itemId));
+    };
+
+    const handleSaveEditedOrder = async () => {
+        if (!editingOrder) return;
+
+        if (editingOrderItems.length === 0) {
+            alert('訂單至少需要一個品項');
+            return;
+        }
+
+        const newTotal = editingOrderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const updatedOrder: Order = {
+            ...editingOrder,
+            items: editingOrderItems,
+            totalAmount: newTotal,
+        };
+
+        await StorageService.saveOrder(updatedOrder);
+        setEditingOrder(null);
+        setEditingOrderItems([]);
+    };
+
+    const handleCancelEditOrder = () => {
+        setEditingOrder(null);
+        setEditingOrderItems([]);
+    };
+
     const handleDeleteItemFromOrder = async (order: Order, itemIndex: number) => {
         if (!confirm(`確定要刪除 ${order.items[itemIndex].name} 嗎？`)) return;
 
@@ -562,6 +621,14 @@ export default function AdminPage() {
                                 <div className={styles.cardFooter}>
                                     <div className={styles.total}>總計: ${order.totalAmount}</div>
                                     <div className={styles.actions}>
+                                        {/* 編輯訂單按鈕 */}
+                                        <button
+                                            className={styles.actionBtn}
+                                            onClick={() => startEditOrder(order)}
+                                            style={{ backgroundColor: '#3498db' }}
+                                        >
+                                            <Edit size={18} /> 編輯訂單
+                                        </button>
                                         {order.status === 'pending' && (
                                             <button className={styles.actionBtn} onClick={() => updateStatus(order.id, 'cooking')}>
                                                 <DollarSign size={18} /> 結帳
@@ -812,13 +879,18 @@ export default function AdminPage() {
                                                                         style={{ flex: 1 }}
                                                                     />
                                                                     <input
-                                                                        type="number"
+                                                                        type="text"
+                                                                        inputMode="numeric"
                                                                         placeholder="價格"
-                                                                        value={option.price}
+                                                                        value={option.price === 0 ? '' : option.price}
                                                                         onChange={(e) => {
                                                                             const newGroups = [...(editingItem.optionGroups || [])];
-                                                                            newGroups[groupIdx].options[optIdx].price = Number(e.target.value);
-                                                                            setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                            const value = e.target.value;
+                                                                            // Allow empty string or valid numbers
+                                                                            if (value === '' || /^\d+$/.test(value)) {
+                                                                                newGroups[groupIdx].options[optIdx].price = value === '' ? 0 : Number(value);
+                                                                                setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                            }
                                                                         }}
                                                                         style={{ width: '80px' }}
                                                                     />
@@ -1034,6 +1106,191 @@ export default function AdminPage() {
                     </div>
                 )}
             </main>
+
+            {/* Order Editing Modal */}
+            {editingOrder && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal} style={{ maxWidth: '900px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3>編輯訂單 - 桌號 {editingOrder.tableId}</h3>
+                            <button
+                                onClick={handleCancelEditOrder}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                            {/* 左側：當前品項列表 */}
+                            <div>
+                                <h4 style={{ marginBottom: '1rem', color: '#2d3436' }}>訂單品項</h4>
+                                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                    {editingOrderItems.length === 0 ? (
+                                        <p style={{ color: '#999', textAlign: 'center', padding: '2rem' }}>訂單中沒有品項</p>
+                                    ) : (
+                                        editingOrderItems.map((item, idx) => (
+                                            <div key={idx} style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                padding: '0.75rem',
+                                                background: '#f8f9fa',
+                                                border: '1px solid #e9ecef',
+                                                borderRadius: '8px',
+                                                marginBottom: '0.5rem'
+                                            }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{item.name}</div>
+                                                    <div style={{ fontSize: '0.9rem', color: '#6c757d' }}>${item.price}</div>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <button
+                                                        onClick={() => handleUpdateEditingItemQuantity(item.id, -1)}
+                                                        style={{
+                                                            width: '32px',
+                                                            height: '32px',
+                                                            border: '1px solid #dee2e6',
+                                                            background: 'white',
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '1.2rem',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center'
+                                                        }}
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '500' }}>
+                                                        {item.quantity}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleUpdateEditingItemQuantity(item.id, 1)}
+                                                        style={{
+                                                            width: '32px',
+                                                            height: '32px',
+                                                            border: '1px solid #dee2e6',
+                                                            background: 'white',
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '1.2rem',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center'
+                                                        }}
+                                                    >
+                                                        +
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRemoveEditingItem(item.id)}
+                                                        style={{
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            color: '#e74c3c',
+                                                            cursor: 'pointer',
+                                                            padding: '4px',
+                                                            marginLeft: '0.5rem'
+                                                        }}
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                <div style={{
+                                    marginTop: '1rem',
+                                    padding: '1rem',
+                                    background: '#e8f5e9',
+                                    borderRadius: '8px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '600',
+                                    color: '#2d3436'
+                                }}>
+                                    總計: ${editingOrderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)}
+                                </div>
+                            </div>
+
+                            {/* 右側：新增品項 */}
+                            <div>
+                                <h4 style={{ marginBottom: '1rem', color: '#2d3436' }}>新增品項</h4>
+                                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                    {menuItems.filter(item => item.available).map((item) => (
+                                        <div
+                                            key={item.id}
+                                            onClick={() => handleAddItemToEditingOrder(item)}
+                                            style={{
+                                                padding: '0.75rem',
+                                                background: 'white',
+                                                border: '1px solid #e9ecef',
+                                                borderRadius: '8px',
+                                                marginBottom: '0.5rem',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = '#f8f9fa';
+                                                e.currentTarget.style.borderColor = '#3498db';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = 'white';
+                                                e.currentTarget.style.borderColor = '#e9ecef';
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{item.name}</div>
+                                                <div style={{ fontSize: '0.85rem', color: '#6c757d' }}>{item.category}</div>
+                                            </div>
+                                            <div style={{ fontWeight: '600', color: '#2ecc71' }}>${item.price}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={handleCancelEditOrder}
+                                style={{
+                                    padding: '0.75rem 1.5rem',
+                                    background: '#95a5a6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                取消
+                            </button>
+                            <button
+                                onClick={handleSaveEditedOrder}
+                                style={{
+                                    padding: '0.75rem 1.5rem',
+                                    background: '#2ecc71',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    fontWeight: '500',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                }}
+                            >
+                                <Save size={18} /> 儲存變更
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Add Category Modal - 可在任何標籤頁使用 */}
             {/* Category Management Modal */}
