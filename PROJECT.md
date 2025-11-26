@@ -284,17 +284,19 @@ vercel alias set <deployment-url> xin-yi-pos.vercel.app
 - ✅ 圖片上傳持久化修復
 - ✅ 移除會員優惠橫幅
 - ✅ 增加除錯日誌追蹤
+- ✅ **管理員身份驗證強化**：
+  - 整合 Firebase Authentication (Email/Password)
+  - 新增 `AdminLayout` 進行全域路由保護
+  - 移除硬編碼的帳號密碼
 
 ### 🔄 進行中
-- [ ] 整合 LINE LIFF 真實登入
-- [ ] 實作 LINE 訂單通知
-- [ ] 加強管理員身份驗證（Firebase Auth）
+- [ ] 整合 LINE LIFF 真實登入 (已在代碼中，待驗證)
+- [ ] 實作 LINE 訂單通知 (已在代碼中，待驗證)
 
 ### 📋 待辦事項
 
 - [ ] 整合 LINE LIFF 真實登入
 - [ ] 實作 LINE 訂單通知
-- [ ] 加強管理員身份驗證（Firebase Auth）
 - [ ] 新增訂單修改功能
 - [ ] 報表與數據分析
 - [ ] 多語系支援

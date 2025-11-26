@@ -11,14 +11,16 @@ export default function AdminLoginPage() {
     const [error, setError] = useState('');
     const router = useRouter();
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (AdminAuthService.login(username, password)) {
+        try {
+            await AdminAuthService.login(username, password);
+            // Redirect is handled by layout.tsx, but we can push here too
             router.push('/admin');
-        } else {
-            setError('帳號或密碼錯誤');
+        } catch (err: any) {
+            setError(err.message || '登入失敗');
             setPassword('');
         }
     };

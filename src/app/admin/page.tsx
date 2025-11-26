@@ -66,17 +66,9 @@ export default function AdminPage() {
 
     // No longer needed - using real-time subscriptions
 
-    const [isAuthLoading, setIsAuthLoading] = useState(true);
+    // No longer needed - using real-time subscriptions
 
     useEffect(() => {
-        // Check authentication first (must be client-side)
-        if (typeof window !== 'undefined') {
-            if (!AdminAuthService.isAuthenticated()) {
-                router.push('/admin/login');
-                return;
-            }
-            setIsAuthLoading(false);
-        }
 
         console.log('🔥 設定 Firestore 即時監聽...');
 
@@ -128,23 +120,6 @@ export default function AdminPage() {
         };
     }, [router]);
 
-    if (isAuthLoading) {
-        return (
-            <div style={{
-                height: '100vh',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                background: '#f8f9fa',
-                color: '#666',
-                flexDirection: 'column',
-                gap: '1rem'
-            }}>
-                <div className={styles.spinner}></div>
-                <p>正在驗證權限...</p>
-            </div>
-        );
-    }
 
     const updateStatus = async (orderId: string, status: Order['status']) => {
         await StorageService.updateOrderStatus(orderId, status);
@@ -350,10 +325,10 @@ export default function AdminPage() {
         await StorageService.deleteOrder(orderId);
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         if (confirm('確定要登出嗎？')) {
-            AdminAuthService.logout();
-            router.push('/admin/login');
+            await AdminAuthService.logout();
+            // Layout will handle redirect
         }
     };
 
