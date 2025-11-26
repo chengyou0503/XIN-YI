@@ -1458,7 +1458,7 @@
 
 /* Touch-friendly improvements for all mobile devices */
 @media (max-width: 1024px) {
-    button, .navBtn, .actionBtn {
+    .navBtn, .actionBtn, .qrBtn, .saveBtn, .cancelBtn, .addBtn {
         min-height: 44px;
         padding: 0.7rem 1rem;
     }
