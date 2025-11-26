@@ -17,10 +17,15 @@ export default function AdminLoginPage() {
 
         try {
             await AdminAuthService.login(username, password);
-            // Redirect is handled by layout.tsx, but we can push here too
+            // Redirect is handled by layout.tsx
             router.push('/admin');
         } catch (err: any) {
-            setError(err.message || '登入失敗');
+            console.error('Login error:', err);
+            if (err.message === '找不到此帳號' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email') {
+                setError('找不到此帳號。注意：系統已升級，舊版 admin/admin 帳號已失效。請使用 Firebase Console 建立的管理員 Email 登入。');
+            } else {
+                setError(err.message || '登入失敗');
+            }
             setPassword('');
         }
     };

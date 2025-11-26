@@ -252,6 +252,9 @@ export default function AdminPage() {
             console.log('⚠️ 【重要】圖片已上傳到 Firebase Storage，但還沒儲存到 Firestore');
             console.log('⚠️ 【重要】請點擊「儲存」按鈕以將變更保存到資料庫');
             console.log('========== ✅ 圖片上傳流程完成 ==========\n');
+
+            // Add visual feedback or alert
+            alert('圖片上傳成功！\n\n⚠️ 請務必點擊下方的「儲存」按鈕，否則重新整理後圖片將會消失！');
         } catch (error) {
             console.error('❌ 圖片上傳失敗:', error);
             alert(error instanceof Error ? error.message : '圖片上傳失敗');

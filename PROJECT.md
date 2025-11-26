@@ -288,6 +288,10 @@ vercel alias set <deployment-url> xin-yi-pos.vercel.app
   - 整合 Firebase Authentication (Email/Password)
   - 新增 `AdminLayout` 進行全域路由保護
   - 移除硬編碼的帳號密碼
+- ✅ **緊急修復 (2025-11-26)**：
+  - **前台點餐**：放寬 LINE 好友檢查，允許確認後送出訂單
+  - **後台登入**：新增明確錯誤提示，引導使用 Firebase 帳號
+  - **圖片上傳**：新增「請點擊儲存」的防呆提示
 
 ### 🔄 進行中
 - [ ] 整合 LINE LIFF 真實登入 (已在代碼中，待驗證)

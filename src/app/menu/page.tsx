@@ -205,8 +205,11 @@ function MenuPage() {
 
         // Check if user is friend
         if (!isFriend) {
-            alert('⚠️ 請先加入 LINE 官方帳號好友才能點餐！\n\n這樣我們才能即時為您更新訂單狀態。');
-            return;
+            // Allow submission but show warning (or just log it for now to unblock user)
+            // In production, we might want to be stricter, but for now let's allow it with a confirm
+            if (!confirm('⚠️ 您尚未加入 LINE 官方帳號好友，這樣無法收到訂單通知喔！\n\n確定要繼續送出訂單嗎？')) {
+                return;
+            }
         }
 
         console.log('\n========== 📝 開始送出訂單 ==========');
