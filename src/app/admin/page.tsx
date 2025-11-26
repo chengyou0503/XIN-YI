@@ -119,6 +119,16 @@ export default function AdminPage() {
                 StorageService.initializeCategories();
             }
         });
+        
+        // Initialize menu if empty
+        StorageService.getMenu().then((items) => {
+            if (items.length === 0) {
+                console.log('⚠️ Menu is empty, attempting to initialize...');
+                StorageService.initializeMenu().catch(err => {
+                    console.error('❌ Menu initialization failed:', err);
+                });
+            }
+        });
 
         return () => {
             console.log('🔌 取消 Firestore 監聽');
