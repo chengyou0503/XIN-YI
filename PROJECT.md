@@ -4,12 +4,72 @@
 **新易現炒 POS 系統** 是一套完整的餐廳點餐與管理系統，整合 LINE LIFF 登入、Firebase 後端、即時訂單通知等功能。
 
 ## 技術架構
-- **前端框架**: Next.js 14 (App Router)
+- **前端框架**: Next.js 14.2.3 (App Router)
 - **樣式**: CSS Modules
-- **後端服務**: Firebase (Firestore, Storage, Hosting)
+- **後端服務**: Firebase (Firestore, Storage, Hosting, Cloud Functions)
 - **身份驗證**: LINE LIFF
 - **部署**: Firebase Hosting + GitHub Actions
 - **通知系統**: LINE Messaging API
+
+## 完整專案流程
+
+### 1. 開發環境設定
+```bash
+# 克隆專案
+git clone https://github.com/chengyou0503/XIN-YI.git
+cd XIN-YI
+
+# 安裝依賴
+npm install
+
+# 設定環境變數（複製 .env.local.example 到 .env.local）
+cp .env.local.example .env.local
+
+# 啟動開發伺服器
+npm run dev
+```
+
+### 2. Firebase 設定
+```bash
+# 登入 Firebase
+firebase login
+
+# 選擇專案
+firebase use xiyi-c4266
+
+# 啟用 Web Frameworks（Next.js 支援）
+firebase experiments:enable webframeworks
+```
+
+### 3. 部署流程
+
+#### 方式一：自動部署（推薦）
+推送程式碼到 GitHub `main` 分支會自動觸發部署：
+```bash
+git add .
+git commit -m "feat: 新功能說明"
+git push origin main
+```
+
+GitHub Actions 會自動：
+1. 執行 `npm ci` 安裝依賴
+2. 部署到 Firebase Hosting (`https://xiyi.web.app`)
+
+#### 方式二：手動部署
+```bash
+# 本地建置
+npm run build
+
+# 部署到 Firebase
+firebase deploy --only hosting
+```
+
+### 4. LINE LIFF 設定
+1. 進入 [LINE Developers Console](https://developers.line.biz/console/)
+2. 選擇 Provider > Channel
+3. 進入「LIFF」頁籤
+4. 更新 Endpoint URL 為：`https://xiyi.web.app`
+5. LIFF ID: `2007818450-kYXd68rR`
 
 ## 近期完成的關鍵功能
 
@@ -29,40 +89,37 @@
   - 已設定 Service Account 與 GitHub Secrets
 
 ### 🔧 先前完成
-- ✅ **QR Code 掃描**：已修正 LIFF 重新導向問題，掃描後可正常進入點餐頁面
-- ✅ **訂單送出前確認對話框**：防止誤點，點擊「送出」會先顯示確認模態框
-- ✅ **成功畫面「知道了」按鈕**：已改為僅關閉成功畫面，避免再次觸發送單流程
-- ✅ **LINE 推播日誌加強**：在前端與 `/api/line/push` 後端加入詳細 console 日誌
-- ✅ **後台新訂單音效**：改為使用 Web Audio API 產生簡短嗶聲
+- ✅ **QR Code 掃描**：已修正 LIFF 重新導向問題
+- ✅ **訂單送出前確認對話框**：防止誤點
+- ✅ **成功畫面「知道了」按鈕**：避免重複送單
+- ✅ **LINE 推播日誌加強**：詳細 console 日誌
+- ✅ **後台新訂單音效**：Web Audio API 簡短嗶聲
 - ✅ **動態分類管理系統**：可在後台新增/刪除分類
 
 ## 仍在追蹤的問題
-- 📢 **LINE 訊息未送達**：API 回傳成功，但客戶仍未收到訊息，需確認：
-  - LINE 官方帳號已加為好友
-  - Bot 已啟用
-  - Flex Message 格式符合規範
-- 🔔 **後台音效**：目前使用嗶聲，若需其他音效可再調整
+- 📢 **LINE 訊息未送達**：需確認好友狀態、Bot 啟用、Flex Message 格式
+- 🔔 **後台音效**：目前使用嗶聲，可調整
 
 ## 待開發功能 (優先順序)
 1. ✅ ~~公告系統~~ (已完成)
 2. ✅ ~~客製化選項系統~~ (已完成)
-3. **後台訂單編輯** – 允許員工在結帳前修改訂單內容（品項、數量、選項）
+3. **後台訂單編輯** – 允許員工在結帳前修改訂單內容
 4. **報表系統** – 營收統計、熱銷商品分析
+5. **多語言支援** – 繁中、英文切換
 
 ## 部署資訊
 
-### Firebase Hosting (目前使用)
+### Firebase Hosting（目前使用）
 - **專案 ID**: `xiyi-c4266`
+- **網址**: `https://xiyi.web.app`
 - **Firebase 方案**: Blaze (Pay as you go)
 - **部署方式**: GitHub Actions (推送至 `main` 分支自動部署)
 - **GitHub Repository**: `chengyou0503/XIN-YI`
+- **區域**: asia-east1
 
-### Vercel (已停用)
-- ~~Vercel 生產網址: https://xin-yi-pos.vercel.app~~ (免費額度用完，已遷移)
+### 環境變數
 
-## 環境變數
-
-### Local Development (`.env.local`)
+#### Local Development (`.env.local`)
 ```env
 # Firebase Configuration
 NEXT_PUBLIC_FIREBASE_API_KEY=...
@@ -76,8 +133,8 @@ CHANNEL_SECRET=06c9612939f7987d1c9e9c42f285a5ab
 NEXT_PUBLIC_LINE_LIFF_ID=2007818450-kYXd68rR
 ```
 
-### GitHub Secrets (已設定)
-- `FIREBASE_SERVICE_ACCOUNT_XIYI_C4266`: Firebase Service Account JSON (用於 CI/CD)
+#### GitHub Secrets（已設定）
+- `FIREBASE_SERVICE_ACCOUNT_XIYI_C4266`: Firebase Service Account JSON
 
 ## 資料結構
 
@@ -91,7 +148,7 @@ NEXT_PUBLIC_LINE_LIFF_ID=2007818450-kYXd68rR
   imageUrl: string;
   available: boolean;
   options?: MenuOption[]; // Deprecated
-  optionGroups?: OptionGroup[]; // 新格式
+  optionGroups?: OptionGroup[]; // 新格式（支援單選/多選）
 }
 ```
 
@@ -118,40 +175,133 @@ NEXT_PUBLIC_LINE_LIFF_ID=2007818450-kYXd68rR
 }
 ```
 
-## 重要修正紀錄
-- 圖片上傳 CORS 錯誤已解決
-- 編輯菜單後 Modal 正確關閉
-- QR Code 重新導向問題已修正
-- 動態分類管理系統完成並整合至菜單管理頁面
-- 菜單資料從簡單選項升級為選項群組架構
-- 部署平台從 Vercel 遷移至 Firebase Hosting
+### Order
+```typescript
+{
+  id: string;
+  tableId: string;
+  items: CartItem[];
+  totalAmount: number;
+  status: 'pending' | 'cooking' | 'served';
+  createdAt: Date;
+  lineUserId?: string;
+}
+```
+
+## 專案結構
+```
+stir-fry-pos/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml          # GitHub Actions 自動部署
+├── src/
+│   ├── app/
+│   │   ├── page.tsx           # 首頁（顯示公告）
+│   │   ├── menu/              # 點餐頁面
+│   │   ├── admin/             # 後台管理
+│   │   │   ├── page.tsx       # 訂單管理、菜單管理
+│   │   │   ├── announcements/ # 公告管理
+│   │   │   ├── login/         # 後台登入
+│   │   │   └── qr/            # QR Code 產生器
+│   │   └── api/
+│   │       └── line/
+│   │           └── push/      # LINE 推播 API
+│   ├── lib/
+│   │   ├── firebaseConfig.ts  # Firebase 初始化
+│   │   ├── storage.ts         # Firestore 操作
+│   │   ├── imageUpload.ts     # Firebase Storage 上傳
+│   │   └── adminAuth.ts       # 後台認證
+│   └── types.ts               # TypeScript 類型定義
+├── firebase.json              # Firebase Hosting 設定
+├── package.json
+└── PROJECT.md                 # 本文件
+```
 
 ## 開發指南
-
-### 本地開發
-```bash
-npm install
-npm run dev
-```
-
-### 部署到 Firebase
-```bash
-# 推送至 GitHub main 分支會自動觸發部署
-git push origin main
-
-# 或手動部署
-firebase deploy --only hosting
-```
 
 ### 初始化菜單資料
 1. 進入後台 `/admin`
 2. 點擊「菜單管理」
-3. 點擊「快速載入預設菜單」按鈕
+3. 點擊「快速載入預設菜單」按鈕（載入 104 個預設菜單項目）
+
+### 新增公告
+1. 進入後台 `/admin`
+2. 點擊「公告管理」
+3. 點擊「新增公告」，輸入標題與內容
+4. 勾選「立即啟用」
+5. 儲存
+
+### 設定選項群組
+1. 進入後台 `/admin` > 菜單管理
+2. 點擊要編輯的餐點
+3. 滾動至「客製化選項群組」區塊
+4. 點擊「新增選項群組」
+5. 設定群組名稱（如：辣度）、類型（單選/多選）、是否必選
+6. 在群組內新增選項（如：小辣 $0、中辣 $0、大辣 $0）
+7. 儲存
+
+### 測試部署
+```bash
+# 查看部署狀態
+gh run list
+
+# 查看最新一次部署的日誌
+gh run view --log
+
+# 查看 Firebase Hosting 網站列表
+firebase hosting:sites:list
+```
+
+## 疑難排解 (Troubleshooting)
+
+### 部署失敗：webframeworks not enabled
+```bash
+firebase experiments:enable webframeworks
+```
+
+### Node 版本警告
+確保 `package.json` 包含：
+```json
+"engines": {
+  "node": ">=20"
+}
+```
+
+### LINE 訊息未送達
+1. 確認用戶已加入 LINE 官方帳號好友
+2. 檢查 `CHANNEL_ACCESS_TOKEN` 是否正確
+3. 確認 Bot 已啟用
+4. 檢查 Flex Message 格式是否符合規範
+
+### 圖片上傳失敗
+檢查 Firebase Storage Rules：
+```
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /menu-items/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
+```
+
+## 重要修正紀錄
+- ✅ 圖片上傳 CORS 錯誤已解決
+- ✅ 編輯菜單後 Modal 正確關閉
+- ✅ QR Code 重新導向問題已修正
+- ✅ 動態分類管理系統完成
+- ✅ 菜單資料從簡單選項升級為選項群組架構
+- ✅ 部署平台從 Vercel 遷移至 Firebase Hosting
+- ✅ 網址簡化為 `https://xiyi.web.app`
 
 ## 聯絡資訊
 - **LINE 官方帳號**: @080pkuoh
 - **Firebase 專案管理員**: lin1023.ai@gmail.com, workistired@gmail.com
+- **GitHub Repository**: https://github.com/chengyou0503/XIN-YI
 
 ---
 
-*此文件由 Antigravity AI 於 2025-11-26 12:47 更新*
+*此文件由 Antigravity AI 於 2025-11-26 13:44 更新*
+*包含完整的專案流程、部署步驟與疑難排解指南*
