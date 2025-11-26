@@ -242,7 +242,11 @@ function MenuPage() {
             // Send LINE Notification if user is logged in
             if (user && user.id) {
                 try {
-                    console.log('📤 正在發送 LINE 通知給使用者:', user.id);
+                    console.log('========== 📤 準備發送 LINE 通知 ==========');
+                    console.log('👤 User ID:', user.id);
+                    console.log('📦 Order ID:', newOrder.id);
+                    console.log('💰 Total Amount:', newOrder.totalAmount);
+
                     const response = await fetch('/api/line/push', {
                         method: 'POST',
                         headers: {
@@ -259,10 +263,14 @@ function MenuPage() {
                     if (response.ok) {
                         console.log('✅ LINE 通知發送成功:', result);
                     } else {
-                        console.error('❌ LINE 通知發送失敗:', result);
+                        console.error('❌ LINE 通知發送失敗:');
+                        console.error('- HTTP Status:', response.status);
+                        console.error('- 錯誤詳情:', result);
                     }
                 } catch (error) {
-                    console.error('❌ LINE 通知發送發生錯誤:', error);
+                    console.error('❌ LINE 通知發送發生錯誤:');
+                    console.error('- Error:', error);
+                    console.error('- User ID 問題？請確認 LIFF 有正確回傳 userId');
                 }
             } else {
                 console.warn('⚠️ 使用者未登入或無 userId，跳過 LINE 通知');

@@ -168,11 +168,24 @@ export async function POST(req: NextRequest) {
             }
         };
 
-        await client.pushMessage(userId, flexMessage);
+        console.log('✅ LINE Push Message 發送成功');
+        return NextResponse.json({ success: true, message: 'Push message sent successfully' });
+    } catch (error: any) {
+        console.error('========== ❌ LINE Push API 錯誤 ==========');
+        console.error('錯誤類型:', error?.constructor?.name);
+        console.error('錯誤訊息:', error?.message);
+        console.error('錯誤詳情:', error);
 
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('Error sending LINE message:', error);
-        return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
+        // LINE API specific errors
+        if (error?.statusCode) {
+            console.error('LINE API Status Code:', error.statusCode);
+            console.error('LINE API Error Details:', error.statusMessage);
+        }
+
+        return NextResponse.json({
+            error: 'Failed to send LINE message',
+            details: error?.message || 'Unknown error',
+            statusCode: error?.statusCode || 500
+        }, { status: 500 });
     }
 }
