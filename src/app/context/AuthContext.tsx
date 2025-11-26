@@ -68,10 +68,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     if (!isAdminPage) {
                         console.log('🔄 自動觸發 LINE 登入...');
                         // Automatically trigger login if not logged in on customer pages
-                        // Use a clean redirect URL without query parameters to avoid loops
-                        const baseUrl = window.location.origin + window.location.pathname;
+                        // Use window.location.href to preserve query parameters (like table ID)
+                        // But we should strip any existing liff.state or code/state params from OAuth to avoid pollution if needed
+                        // For now, using href is safer than stripping everything
                         liff.login({
-                            redirectUri: baseUrl,
+                            redirectUri: window.location.href,
                         });
                         // liff.login will redirect, so no further code in this block will execute
                         // and setIsLoading(false) will be handled after redirection/re-initialization

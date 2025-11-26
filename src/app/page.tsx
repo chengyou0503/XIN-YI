@@ -30,7 +30,26 @@ function HomePage() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [router, table]);
+
+    // Fallback: Check for liff.state if it exists but LIFF hasn't redirected yet
+    const liffState = searchParams.get('liff.state');
+    if (liffState) {
+      console.log('🔍 Detected liff.state, waiting for LIFF redirect...');
+      // You could try to manually decode it here if LIFF fails, 
+      // but usually we just wait. 
+      // If it's stuck here, it means LIFF init failed or didn't redirect.
+      // Let's try to decode it manually as a failsafe.
+      try {
+        const decodedPath = decodeURIComponent(liffState);
+        if (decodedPath.startsWith('/')) {
+          console.log('🔄 Manually redirecting to:', decodedPath);
+          router.push(decodedPath);
+        }
+      } catch (e) {
+        console.error('Failed to parse liff.state', e);
+      }
+    }
+  }, [router, table, searchParams]);
 
   return (
     <main className={styles.main}>

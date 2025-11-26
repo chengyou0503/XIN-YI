@@ -1,0 +1,84 @@
+[debug] [2025-11-26T06:29:23.267Z] ----------------------------------------------------------------------
+[debug] [2025-11-26T06:29:23.271Z] Command:       /Users/chengyou/.nvm/versions/node/v22.20.0/bin/node /opt/homebrew/bin/firebase deploy --only hosting
+[debug] [2025-11-26T06:29:23.271Z] CLI Version:   14.10.1
+[debug] [2025-11-26T06:29:23.271Z] Platform:      darwin
+[debug] [2025-11-26T06:29:23.271Z] Node Version:  v22.20.0
+[debug] [2025-11-26T06:29:23.272Z] Time:          Wed Nov 26 2025 14:29:23 GMT+0800 (台北標準時間)
+[debug] [2025-11-26T06:29:23.272Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-11-26T06:29:23.372Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-11-26T06:29:23.373Z] > authorizing via signed-in user (lin1023.ai@gmail.com)
+[debug] [2025-11-26T06:29:23.373Z] [iam] checking project xiyi-c4266 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-11-26T06:29:23.373Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:23.373Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:23.374Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/xiyi-c4266:testIamPermissions [none]
+[debug] [2025-11-26T06:29:23.374Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/xiyi-c4266:testIamPermissions x-goog-quota-user=projects/xiyi-c4266
+[debug] [2025-11-26T06:29:23.374Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/xiyi-c4266:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-11-26T06:29:24.247Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/xiyi-c4266:testIamPermissions 200
+[debug] [2025-11-26T06:29:24.247Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/xiyi-c4266:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-11-26T06:29:24.247Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:24.247Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:24.247Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/xiyi-c4266 [none]
+[debug] [2025-11-26T06:29:24.596Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/xiyi-c4266 200
+[debug] [2025-11-26T06:29:24.596Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/xiyi-c4266 {"projectId":"xiyi-c4266","projectNumber":"355458948400","displayName":"xiyi","name":"projects/xiyi-c4266","resources":{"hostingSite":"xiyi-c4266"},"state":"ACTIVE","etag":"1_8411af53-1169-48af-a80c-14b0b32640a2"}
+[debug] [2025-11-26T06:29:25.431Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:25.431Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:25.431Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites pageToken=&pageSize=10
+[debug] [2025-11-26T06:29:25.934Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites 200
+[debug] [2025-11-26T06:29:25.935Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites {"sites":[{"name":"projects/xiyi-c4266/sites/xiyi","defaultUrl":"https://xiyi.web.app","type":"USER_SITE"},{"name":"projects/xiyi-c4266/sites/xiyi-c4266","defaultUrl":"https://xiyi-c4266.web.app","appId":"1:355458948400:web:87a5968f18525ff10bbcf5","type":"DEFAULT_SITE"}]}
+[debug] [2025-11-26T06:29:25.935Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:25.936Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:25.936Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites 
+[debug] [2025-11-26T06:29:26.346Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites 200
+[debug] [2025-11-26T06:29:26.347Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites {"sites":[{"name":"projects/xiyi-c4266/sites/xiyi","defaultUrl":"https://xiyi.web.app","type":"USER_SITE"},{"name":"projects/xiyi-c4266/sites/xiyi-c4266","defaultUrl":"https://xiyi-c4266.web.app","appId":"1:355458948400:web:87a5968f18525ff10bbcf5","type":"DEFAULT_SITE"}]}
+[debug] [2025-11-26T06:29:26.347Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:26.347Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:26.347Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/xiyi-c4266/webApps/1:355458948400:web:87a5968f18525ff10bbcf5/config [none]
+[debug] [2025-11-26T06:29:27.247Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/xiyi-c4266/webApps/1:355458948400:web:87a5968f18525ff10bbcf5/config 200
+[debug] [2025-11-26T06:29:27.247Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/xiyi-c4266/webApps/1:355458948400:web:87a5968f18525ff10bbcf5/config {"projectId":"xiyi-c4266","appId":"1:355458948400:web:87a5968f18525ff10bbcf5","storageBucket":"xiyi-c4266.firebasestorage.app","apiKey":"AIzaSyBlJ8kU8aZyReaH6NP40G-uHeOTFXxwtfE","authDomain":"xiyi-c4266.firebaseapp.com","messagingSenderId":"355458948400","measurementId":"G-B7QK18HY6N","projectNumber":"355458948400","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2025-11-26T06:29:28.759Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:28.759Z] Checked if tokens are valid: true, expires at: 1764140114554
+[debug] [2025-11-26T06:29:28.759Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites/xiyi-c4266 [none]
+[debug] [2025-11-26T06:29:29.085Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites/xiyi-c4266 200
+[debug] [2025-11-26T06:29:29.086Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/xiyi-c4266/sites/xiyi-c4266 {"name":"projects/xiyi-c4266/sites/xiyi-c4266","defaultUrl":"https://xiyi-c4266.web.app","appId":"1:355458948400:web:87a5968f18525ff10bbcf5","type":"DEFAULT_SITE"}
+[info]   ▲ Next.js 14.2.3
+
+[info]   - Environments: .env.local
+
+
+[info]    Creating an optimized production build ...
+
+[info] <w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|javascript/auto|/Users/chengyou/Desktop/L系統Demo/stir-fry-pos/node_modules/next/dist/build/webpack/loaders/next-flight-css-loader.js??ruleSet[1].rules[14].oneOf[7].use[0]!/Users/chengyou/Desktop/L系統Demo/stir-fry-pos/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[1]!/Users/chengyou/Desktop/L系統Demo/stir-fry-pos/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[2]!/Users/chengyou/Desktop/L系統Demo/stir-fry-pos/src/app/admin/admin.module.css|ssr': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+
+[info] Failed to compile.
+
+
+[info] ./src/app/admin/admin.module.css:1461:5
+Syntax error: Selector "button, .navBtn, .actionBtn" is not pure (pure selectors must contain at least one local class or id)
+
+  1459 | /* Touch-friendly improvements for all mobile devices */
+  1460 | @media (max-width: 1024px) {
+> 1461 |     button, .navBtn, .actionBtn {
+       |     ^
+  1462 |         min-height: 44px;
+  1463 |         padding: 0.7rem 1rem;
+
+
+[info] 
+
+[info] > Build failed because of webpack errors
+
+[debug] [2025-11-26T06:29:32.346Z] Error: ENOENT: no such file or directory, open '/Users/chengyou/Desktop/L系統Demo/stir-fry-pos/.next/server/middleware-manifest.json'
+[error] 
+[error] Error: An unexpected error has occurred.
