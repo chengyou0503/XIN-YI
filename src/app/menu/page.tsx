@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/lib/mockData';
-import { MenuItem, CartItem, Category, MenuOption, CategoryItem } from '@/types';
+import { MenuItem, CartItem, Category, MenuOption, CategoryItem, Order } from '@/types';
 import { ShoppingCart, Plus, Minus, X, Utensils, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { StorageService } from '@/lib/storage';
@@ -29,6 +29,7 @@ function MenuPage() {
     const [selectedOptions, setSelectedOptions] = useState<MenuOption[]>([]);
 
     const [isSuccess, setIsSuccess] = useState(false);
+    const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
     const [showFriendInvite, setShowFriendInvite] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false); // 改為 false，因為已有預設資料
@@ -255,13 +256,15 @@ function MenuPage() {
 
             setCart([]);
             setIsCartOpen(false);
+            setCompletedOrder(newOrder);
             setIsSuccess(true);
             console.log('========== ✅ 訂單流程完成 ==========\n');
 
-            // Auto hide success message after 5 seconds (延長顯示時間)
+            // Auto hide success message after 8 seconds
             setTimeout(() => {
                 setIsSuccess(false);
-            }, 5000);
+                setCompletedOrder(null);
+            }, 8000);
         } catch (error) {
             console.error('❌ 訂單送出失敗:', error);
             alert('訂單送出失敗，請重試或聯絡服務人員');
@@ -477,16 +480,78 @@ function MenuPage() {
                 </div>
             )}
 
-            {isSuccess && (
+            {isSuccess && completedOrder && (
                 <div className={styles.successOverlay}>
                     <div className={styles.successCard}>
                         <div className={styles.successIcon}>
-                            <Utensils size={40} />
+                            <Utensils size={48} />
                         </div>
-                        <h3>訂單已送出！</h3>
-                        <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ff7675', marginTop: '1rem' }}>請至櫃檯結帳</p>
-                        <p style={{ fontSize: '0.95rem', color: '#636e72', marginTop: '0.5rem' }}>廚房正在為您準備餐點</p>
-                        <button className={styles.successBtn} onClick={() => setIsSuccess(false)} style={{ marginTop: '1.5rem' }}>
+                        <h2 style={{ color: '#2d3436', marginBottom: '0.5rem' }}>訂單已送出！</h2>
+
+                        <div style={{
+                            background: '#f8f9fa',
+                            padding: '1.5rem',
+                            borderRadius: '12px',
+                            margin: '1.5rem 0',
+                            textAlign: 'left'
+                        }}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <span style={{ color: '#636e72', fontSize: '0.9rem' }}>桌號</span>
+                                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ff7675', margin: '0.25rem 0' }}>
+                                    {completedOrder.tableId}
+                                </p>
+                            </div>
+
+                            <div style={{ borderTop: '1px solid #dfe6e9', paddingTop: '1rem', marginTop: '1rem' }}>
+                                <span style={{ color: '#636e72', fontSize: '0.9rem', fontWeight: '600' }}>訂單內容</span>
+                                {completedOrder.items.map((item, idx) => (
+                                    <div key={idx} style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        padding: '0.5rem 0',
+                                        color: '#2d3436'
+                                    }}>
+                                        <span>
+                                            <strong style={{ color: '#ff7675' }}>{item.quantity}x</strong> {item.name}
+                                        </span>
+                                        <span style={{ fontWeight: '600' }}>${item.price * item.quantity}</span>
+                                    </div>
+                                ))}
+                                <div style={{
+                                    borderTop: '2px solid #2d3436',
+                                    marginTop: '0.75rem',
+                                    paddingTop: '0.75rem',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    fontSize: '1.2rem',
+                                    fontWeight: 'bold',
+                                    color: '#2d3436'
+                                }}>
+                                    <span>總計</span>
+                                    <span>${completedOrder.totalAmount}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{
+                            background: '#fff3cd',
+                            padding: '1rem',
+                            borderRadius: '8px',
+                            marginBottom: '1.5rem',
+                            border: '1px solid #ffc107'
+                        }}>
+                            <p style={{ color: '#856404', fontWeight: '600', margin: 0, fontSize: '1.05rem' }}>
+                                💰 請至櫃檯結帳後開始製作
+                            </p>
+                        </div>
+
+                        <button
+                            className={styles.successBtn}
+                            onClick={() => {
+                                setIsSuccess(false);
+                                setCompletedOrder(null);
+                            }}
+                        >
                             知道了
                         </button>
                     </div>
