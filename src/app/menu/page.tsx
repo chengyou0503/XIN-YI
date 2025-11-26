@@ -31,6 +31,7 @@ function MenuPage() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
     const [showFriendInvite, setShowFriendInvite] = useState(false);
+    const [showOrderConfirm, setShowOrderConfirm] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false); // 改為 false，因為已有預設資料
 
@@ -201,7 +202,17 @@ function MenuPage() {
         });
     };
 
-    const handleCheckout = async () => {
+    // 顯示確認對話框
+    const requestCheckout = () => {
+        if (!tableId) {
+            alert('錯誤：找不到桌號');
+            return;
+        }
+        setShowOrderConfirm(true);
+    };
+
+    // 確認送出訂單
+    const confirmCheckout = async () => {
         if (!tableId) {
             alert('錯誤：找不到桌號');
             return;
@@ -264,9 +275,11 @@ function MenuPage() {
             console.log('========== ✅ 訂單流程完成 ==========\n');
 
             // 不自動關閉，讓客戶手動關閉確認畫面
+            setShowOrderConfirm(false); // 關閉確認對話框
         } catch (error) {
             console.error('❌ 訂單送出失敗:', error);
             alert('訂單送出失敗，請重試或聯絡服務人員');
+            setShowOrderConfirm(false);
         }
     };
 
@@ -469,7 +482,7 @@ function MenuPage() {
                                 <button
                                     className={styles.checkoutBtn}
                                     disabled={cart.length === 0}
-                                    onClick={handleCheckout}
+                                    onClick={requestCheckout}
                                 >
                                     送出訂單
                                 </button>
@@ -545,14 +558,105 @@ function MenuPage() {
                         </div>
 
                         <button
-                            className={styles.successBtn}
-                            onClick={() => {
-                                setIsSuccess(false);
-                                setCompletedOrder(null);
-                            }}
+                            className={styles.checkoutBtn}
+                            onClick={requestCheckout}
                         >
                             知道了
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Order Confirmation Modal */}
+            {showOrderConfirm && (
+                <div className={styles.modalOverlay} style={{ zIndex: 10000 }}>
+                    <div className={styles.modal} style={{ maxWidth: '500px' }}>
+                        <h2 style={{ fontSize: '1.5rem', color: '#2d3436', marginBottom: '1.5rem', textAlign: 'center' }}>
+                            確認送出訂單？
+                        </h2>
+
+                        <div style={{
+                            background: '#f8f9fa',
+                            padding: '1.5rem',
+                            borderRadius: '16px',
+                            marginBottom: '1.5rem'
+                        }}>
+                            <div style={{ marginBottom: '1.2rem', paddingBottom: '1rem', borderBottom: '1px solid #dfe6e9' }}>
+                                <span style={{ color: '#636e72', fontSize: '0.9rem' }}>桌號</span>
+                                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ff7675', margin: '0.25rem 0' }}>
+                                    {tableId}
+                                </p>
+                            </div>
+
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <span style={{ color: '#636e72', fontSize: '0.9rem', fontWeight: '600', display: 'block', marginBottom: '0.75rem' }}>訂單內容</span>
+                                {cart.map((item, idx) => {
+                                    const optionsPrice = item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0;
+                                    const itemTotal = (item.price + optionsPrice) * item.quantity;
+
+                                    return (
+                                        <div key={idx} style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            padding: '0.5rem 0',
+                                            color: '#2d3436'
+                                        }}>
+                                            <span>
+                                                <strong style={{ color: '#ff7675' }}>{item.quantity}x</strong> {item.name}
+                                                {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                    <span style={{ color: '#636e72', fontSize: '0.85rem', display: 'block', marginLeft: '2rem' }}>
+                                                        {item.selectedOptions.map(opt => opt.name).join(', ')}
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span style={{ fontWeight: '600' }}>${itemTotal}</span>
+                                        </div>
+                                    );
+                                })}
+
+                                <div style={{
+                                    borderTop: '2px solid #2d3436',
+                                    marginTop: '0.75rem',
+                                    paddingTop: '0.75rem',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    fontSize: '1.3rem',
+                                    fontWeight: 'bold',
+                                    color: '#2d3436'
+                                }}>
+                                    <span>總計</span>
+                                    <span style={{ color: '#ff7675' }}>${totalAmount}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{
+                            background: '#fff3cd',
+                            padding: '1rem',
+                            borderRadius: '12px',
+                            marginBottom: '1.5rem',
+                            border: '1px solid #ffc107'
+                        }}>
+                            <p style={{ color: '#856404', fontWeight: '600', margin: 0, fontSize: '0.95rem', textAlign: 'center' }}>
+                                ⚠️ 請確認訂單內容無誤後送出
+                            </p>
+                        </div>
+
+                        <div className={styles.modalActions}>
+                            <button
+                                className={styles.cancelBtn}
+                                onClick={() => setShowOrderConfirm(false)}
+                            >
+                                取消
+                            </button>
+                            <button
+                                className={styles.confirmBtn}
+                                onClick={confirmCheckout}
+                                style={{ background: '#00b894', color: 'white' }}
+                            >
+                                確定送出
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
