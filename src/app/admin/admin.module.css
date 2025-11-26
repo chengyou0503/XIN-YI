@@ -747,6 +747,14 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* Hide QR Code button on tablet and larger screens */
+@media(min-width: 768px) {
+    .qrBtn:first-child {
+        display: none;
+    }
+}
+
+
 /* History View */
 .historyView {
     animation: fadeIn 0.5s ease-out;
