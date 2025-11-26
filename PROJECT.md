@@ -301,7 +301,10 @@ vercel alias set <deployment-url> xin-yi-pos.vercel.app
     - 統一 `firebase.ts` 和 `firebaseConfig.ts` 使用環境變數清理函數
     - 移除所有換行符號和空白字符修復圖片上傳 CORS 錯誤
     - 加入硬編碼備用值防止環境變數問題
-
+- ✅ **訂單確認 UI 改善 (2025-11-26 10:08)**:
+  - 移除 8 秒自動關閉機制，改為手動關閉
+  - 優化視覺設計：加大畫面尺寸（480px）、支持滾動、改善動畫
+  - 提升圖標尺寸（96px）與視覺精緻度
 
 ### ⚠️ 待解決 - Firebase 權限配置
 **問題**: Firestore Security Rules 過於嚴格,導致所有讀寫操作失敗

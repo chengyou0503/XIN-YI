@@ -52,14 +52,17 @@ function MenuPage() {
                 const items = await StorageService.getMenu();
                 console.log('📋 Firestore 菜單載入完成，項目數量:', items.length);
 
+                // 只有在有資料時才更新，避免權限錯誤時覆蓋本地資料
                 if (items && items.length > 0) {
                     setMenuItems(items);
                     console.log('✅ 已更新為 Firestore 菜單');
                 } else {
-                    console.log('ℹ️ Firestore 菜單為空，繼續使用預設資料');
+                    console.log('⚠️ Firestore 菜單為空或無權限，保留本地預設資料');
+                    // 保留 MENU_DATA 作為 fallback
                 }
             } catch (err) {
-                console.error('❌ 載入 Firestore 菜單失敗，使用預設資料:', err);
+                console.error('❌ 載入 Firestore 菜單失敗，保留本地預設資料:', err);
+                // 不做任何事，保留 MENU_DATA
             }
         };
 
