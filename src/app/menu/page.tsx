@@ -260,11 +260,7 @@ function MenuPage() {
             setIsSuccess(true);
             console.log('========== ✅ 訂單流程完成 ==========\n');
 
-            // Auto hide success message after 8 seconds
-            setTimeout(() => {
-                setIsSuccess(false);
-                setCompletedOrder(null);
-            }, 8000);
+            // 不自動關閉，讓客戶手動關閉確認畫面
         } catch (error) {
             console.error('❌ 訂單送出失敗:', error);
             alert('訂單送出失敗，請重試或聯絡服務人員');

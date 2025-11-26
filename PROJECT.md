@@ -297,7 +297,11 @@ vercel alias set <deployment-url> xin-yi-pos.vercel.app
   - **分類管理 UI 改善**: 重構為模態框介面,提供更直觀的分類新增/刪除體驗
 - ✅ **訂單流程優化 (2025-11-26 09:25)**:
   - **訂單確認 UI**: 改善成功訊息,顯示完整訂單詳情（桌號、餐點清單、總金額）
-  - **Firebase 配置強化**: 加入環境變數清理函數,移除所有換行符號和空白字符,修復圖片上傳 CORS 錯誤
+  - **Firebase 配置強化**: 
+    - 統一 `firebase.ts` 和 `firebaseConfig.ts` 使用環境變數清理函數
+    - 移除所有換行符號和空白字符修復圖片上傳 CORS 錯誤
+    - 加入硬編碼備用值防止環境變數問題
+
 
 ### ⚠️ 待解決 - Firebase 權限配置
 **問題**: Firestore Security Rules 過於嚴格,導致所有讀寫操作失敗
