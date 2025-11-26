@@ -60,14 +60,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 } else {
                     // Only auto-login if NOT on admin page
                     const isAdminPage = window.location.pathname.startsWith('/admin');
+
+                    console.log('👤 未登入 LINE');
+                    console.log('📍 當前路徑:', window.location.pathname);
+                    console.log('🔐 是否為後台頁面:', isAdminPage);
+
                     if (!isAdminPage) {
-                        // Automatically trigger login if not logged in
+                        console.log('🔄 自動觸發 LINE 登入...');
+                        // Automatically trigger login if not logged in on customer pages
+                        // Use a clean redirect URL without query parameters to avoid loops
+                        const baseUrl = window.location.origin + window.location.pathname;
                         liff.login({
-                            redirectUri: window.location.href,
+                            redirectUri: baseUrl,
                         });
                         // liff.login will redirect, so no further code in this block will execute
                         // and setIsLoading(false) will be handled after redirection/re-initialization
                         return;
+                    } else {
+                        console.log('⏭️  後台頁面，跳過自動登入');
                     }
                 }
             } catch (error) {
