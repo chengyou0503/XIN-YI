@@ -105,6 +105,26 @@ export class StorageService {
         }
     }
 
+    static async saveMenuItem(item: MenuItem) {
+        try {
+            console.log('\n========== 🔥 Firestore 儲存單一餐點 ==========');
+            console.log('📝 餐點資料:', {
+                id: item.id,
+                name: item.name,
+                imageUrl: item.imageUrl,
+                price: item.price,
+                category: item.category
+            });
+
+            await setDoc(doc(db, COLLECTIONS.MENU, item.id), item, { merge: true });
+            console.log('✅ 餐點已成功更新至 Firestore');
+            console.log('========== ✅ 單一餐點儲存完成 ==========\n');
+        } catch (error) {
+            console.error('❌ Firestore 儲存單一餐點失敗:', error);
+            throw error;
+        }
+    }
+
     static subscribeToMenu(callback: MenuCallback) {
         const q = query(collection(db, COLLECTIONS.MENU));
         this.menuUnsubscribe = onSnapshot(q, (snapshot) => {

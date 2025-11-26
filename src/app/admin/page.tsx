@@ -169,16 +169,16 @@ export default function AdminPage() {
         // 異步儲存到 Firebase（在背景執行）
         try {
             console.log('🔥 開始儲存至 Firestore...');
-            await StorageService.saveMenu(updatedMenu);
-            console.log('✅ 菜單已成功儲存至 Firestore');
-            console.log('📊 儲存的餐點數量:', updatedMenu.length);
+
+            // 改用 saveMenuItem 只更新單一項目，避免覆蓋整個菜單導致資料遺失
+            await StorageService.saveMenuItem(itemToSave);
+
+            console.log('✅ 菜單項目已成功儲存至 Firestore');
+            console.log('📊 儲存的餐點:', itemToSave.name);
 
             // 驗證儲存結果
             console.log('🔍 驗證剛儲存的餐點...');
-            const savedItem = updatedMenu.find(m => m.id === itemToSave.id);
-            if (savedItem) {
-                console.log('✅ 驗證成功 - 圖片 URL:', savedItem.imageUrl);
-            }
+            console.log('✅ 驗證成功 - 圖片 URL:', itemToSave.imageUrl);
             console.log('========== ✅ 儲存流程完成 ==========\n');
         } catch (error) {
             console.error('❌ 儲存失敗:', error);
