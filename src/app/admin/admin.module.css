@@ -799,6 +799,134 @@
     border-collapse: collapse;
 }
 
+/* Category Management Modal */
+.categoryManager {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.addCategoryRow {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.categoryInput {
+    flex: 1;
+    padding: 0.8rem;
+    border: 2px solid #f1f2f6;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.categoryInput:focus {
+    border-color: #2d3436;
+    outline: none;
+}
+
+.addCategoryBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1.5rem;
+    background-color: #2d3436;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.addCategoryBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.categoryList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.categoryItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.categoryItem:hover {
+    background-color: #f1f2f6;
+}
+
+.categoryName {
+    font-weight: 700;
+    color: #2d3436;
+    font-size: 1.1rem;
+}
+
+.categoryMeta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.usageCount {
+    font-size: 0.9rem;
+    color: #636e72;
+    background: #e0e0e0;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.deleteCategoryBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background-color: white;
+    color: #ff7675;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.deleteCategoryBtn:hover {
+    background-color: #ff7675;
+    color: white;
+    transform: scale(1.1);
+}
+
+.secondaryBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background-color: white;
+    color: #2d3436;
+    border: 2px solid #2d3436;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.secondaryBtn:hover {
+    background-color: #2d3436;
+    color: white;
+}
+
 .historyTable th {
     text-align: left;
     padding: 1rem;

@@ -32,7 +32,7 @@ export default function AdminPage() {
 
     // Category Management State
     const [categories, setCategories] = useState<CategoryItem[]>([]);
-    const [isAddingCategory, setIsAddingCategory] = useState(false);
+    const [isManagingCategories, setIsManagingCategories] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
 
     const playNotificationSound = () => {
@@ -382,7 +382,7 @@ export default function AdminPage() {
 
             await StorageService.saveCategory(newCategory);
             setNewCategoryName('');
-            setIsAddingCategory(false);
+            // Don't close modal, just clear input
             console.log('✅ 分類已新增:', newCategory.name);
         } catch (error) {
             console.error('新增分類失敗:', error);
@@ -572,43 +572,18 @@ export default function AdminPage() {
                 {activeTab === 'menu' && (
                     <div className={styles.menuManagement}>
                         {/* 分類管理區塊 */}
-                        <div className={styles.categorySection}>
-                            <h3>分類管理</h3>
-                            <div className={styles.categoryTags}>
-                                {categories.map((category) => {
-                                    const usageCount = menuItems.filter(item => item.category === category.name).length;
-                                    return (
-                                        <div key={category.id} className={styles.categoryTag}>
-                                            <span>{category.name} ({usageCount})</span>
-                                            <button
-                                                onClick={() => {
-                                                    if (confirm(`確定要刪除「${category.name}」分類嗎？`)) {
-                                                        handleDeleteCategory(category.id, category.name);
-                                                    }
-                                                }}
-                                                className={styles.categoryDeleteBtn}
-                                                title="刪除分類"
-                                            >
-                                                <X size={14} />
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                                <button
-                                    className={styles.addCategoryBtn}
-                                    onClick={() => setIsAddingCategory(true)}
-                                >
-                                    <Plus size={16} /> 新增分類
-                                </button>
-                            </div>
-                        </div>
 
                         {/* 菜單管理區塊 */}
                         <div className={styles.menuHeader}>
                             <h2>菜單管理</h2>
-                            <button className={styles.addBtn} onClick={startAdd}>
-                                <Plus size={18} /> 新增餐點
-                            </button>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button className={styles.secondaryBtn} onClick={() => setIsManagingCategories(true)}>
+                                    <Utensils size={18} /> 管理分類
+                                </button>
+                                <button className={styles.addBtn} onClick={startAdd}>
+                                    <Plus size={18} /> 新增餐點
+                                </button>
+                            </div>
                         </div>
 
                         {/* Category Filter */}
@@ -922,40 +897,67 @@ export default function AdminPage() {
             </main>
 
             {/* Add Category Modal - 可在任何標籤頁使用 */}
-            {isAddingCategory && (
+            {/* Category Management Modal */}
+            {isManagingCategories && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
-                        <h3>新增分類</h3>
-                        <div className={styles.editForm}>
-                            <label>
-                                分類名稱:
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3>分類管理</h3>
+                            <button
+                                onClick={() => setIsManagingCategories(false)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className={styles.categoryManager}>
+                            <div className={styles.addCategoryRow}>
                                 <input
                                     type="text"
+                                    placeholder="輸入新分類名稱..."
                                     value={newCategoryName}
                                     onChange={(e) => setNewCategoryName(e.target.value)}
-                                    placeholder="例如：甜點類"
-                                    autoFocus
+                                    className={styles.categoryInput}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
+                                            e.preventDefault();
                                             handleAddCategory();
                                         }
                                     }}
                                 />
-                            </label>
-                        </div>
-                        <div className={styles.modalFooter} style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                            <button
-                                onClick={() => {
-                                    setIsAddingCategory(false);
-                                    setNewCategoryName('');
-                                }}
-                                className={styles.cancelBtn}
-                            >
-                                取消
-                            </button>
-                            <button onClick={handleAddCategory} className={styles.saveBtn}>
-                                新增
-                            </button>
+                                <button onClick={handleAddCategory} className={styles.addCategoryBtn}>
+                                    <Plus size={18} /> 新增
+                                </button>
+                            </div>
+
+                            <div className={styles.categoryList}>
+                                {categories.map((category) => {
+                                    const usageCount = menuItems.filter(item => item.category === category.name).length;
+                                    return (
+                                        <div key={category.id} className={styles.categoryItem}>
+                                            <span className={styles.categoryName}>{category.name}</span>
+                                            <div className={styles.categoryMeta}>
+                                                <span className={styles.usageCount}>{usageCount} 個餐點</span>
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm(`確定要刪除「${category.name}」分類嗎？`)) {
+                                                            handleDeleteCategory(category.id, category.name);
+                                                        }
+                                                    }}
+                                                    className={styles.deleteCategoryBtn}
+                                                    title="刪除分類"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                {categories.length === 0 && (
+                                    <p style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>目前沒有分類</p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
