@@ -899,7 +899,7 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .deleteCategoryBtn:hover {
@@ -1326,6 +1326,7 @@
         transform: rotate(360deg);
     }
 }
+
 /* Option Groups Management */
 .optionGroupsSection {
     margin-top: 1rem;
@@ -1434,13 +1435,16 @@
         min-height: 48px;
     }
 
-    .actionBtn, .cookBtn {
+    .actionBtn,
+    .cookBtn {
         font-size: 1rem;
         padding: 0.7rem 1rem;
         min-height: 44px;
     }
 
-    .orderCard, .kitchenTicket, .menuCard {
+    .orderCard,
+    .kitchenTicket,
+    .menuCard {
         font-size: 1rem;
     }
 
@@ -1449,7 +1453,9 @@
         padding: 2rem;
     }
 
-    .editForm input, .editForm select, .editForm textarea {
+    .editForm input,
+    .editForm select,
+    .editForm textarea {
         font-size: 1rem;
         padding: 0.8rem;
         min-height: 44px;
@@ -1458,13 +1464,26 @@
 
 /* Touch-friendly improvements for all mobile devices */
 @media (max-width: 1024px) {
-    .navBtn, .actionBtn, .qrBtn, .saveBtn, .cancelBtn, .addBtn {
+
+    .navBtn,
+    .actionBtn,
+    .qrBtn,
+    .saveBtn,
+    .cancelBtn,
+    .addBtn {
         min-height: 44px;
         padding: 0.7rem 1rem;
     }
 
-    input, select, textarea {
+    .categoryInput,
+    .editForm input,
+    .editForm select,
+    .editForm textarea,
+    .groupInputs input,
+    .groupInputs select,
+    .groupOptionItem input {
         min-height: 44px;
-        font-size: 16px; /* Prevents zoom on iOS */
+        font-size: 16px;
+        /* Prevents zoom on iOS */
     }
 }
