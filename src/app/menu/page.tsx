@@ -573,8 +573,11 @@ function MenuPage() {
                         </div>
 
                         <button
-                            className={styles.checkoutBtn}
-                            onClick={requestCheckout}
+                            className={styles.successBtn}
+                            onClick={() => {
+                                setIsSuccess(false);
+                                setCompletedOrder(null);
+                            }}
                         >
                             知道了
                         </button>
