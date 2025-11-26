@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { StorageService } from '@/lib/storage';
 import { MENU_DATA } from '@/lib/menuData';
 import styles from './menu.module.css';
+import OptionsModal from '@/components/OptionsModal';
 
 
 
@@ -26,13 +27,15 @@ function MenuPage() {
 
     // Options Modal State
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-    const [selectedOptions, setSelectedOptions] = useState<MenuOption[]>([]);
-    const [selectedGroupOptions, setSelectedGroupOptions] = useState<Record<string, MenuOption[]>>({});
 
     const [isSuccess, setIsSuccess] = useState(false);
     const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
     const [showFriendInvite, setShowFriendInvite] = useState(false);
     const [showOrderConfirm, setShowOrderConfirm] = useState(false);
+
+    // ... (keep existing code)
+    // ... (keep existing code)
+
 
     const [isLoading, setIsLoading] = useState(false); // 改為 false，因為已有預設資料
 
@@ -163,20 +166,18 @@ function MenuPage() {
     };
 
     const addToCart = (item: MenuItem) => {
-        // Check for new option groups format
-        if (item.optionGroups && item.optionGroups.length > 0) {
+        // Check for options
+        if ((item.optionGroups && item.optionGroups.length > 0) || (item.options && item.options.length > 0)) {
             setSelectedItem(item);
-            setSelectedGroupOptions({});
-            return;
-        }
-        // Fallback to old options format
-        if (item.options && item.options.length > 0) {
-            setSelectedItem(item);
-            setSelectedOptions([]);
             return;
         }
 
         addItemToCart(item, []);
+    };
+
+    const handleConfirmAddWithOptions = (item: MenuItem, options: MenuOption[]) => {
+        addItemToCart(item, options);
+        setSelectedItem(null);
     };
 
     const addItemToCart = (item: MenuItem, options: MenuOption[]) => {
@@ -192,61 +193,6 @@ function MenuPage() {
                 return prev.map(i => i === existing ? { ...i, quantity: i.quantity + 1 } : i);
             }
             return [...prev, { ...item, quantity: 1, selectedOptions: options }];
-        });
-    };
-
-    const handleConfirmOptions = () => {
-        if (!selectedItem) return;
-
-        // Handle option groups
-        if (selectedItem.optionGroups && selectedItem.optionGroups.length > 0) {
-            // Validate required groups
-            for (const group of selectedItem.optionGroups) {
-                if (group.required && (!selectedGroupOptions[group.id] || selectedGroupOptions[group.id].length === 0)) {
-                    alert(`請選擇 ${group.name}`);
-                    return;
-                }
-            }
-
-            // Flatten all selected options from all groups
-            const allOptions = Object.values(selectedGroupOptions).flat();
-            addItemToCart(selectedItem, allOptions);
-            setSelectedItem(null);
-            setSelectedGroupOptions({});
-            return;
-        }
-
-        // Fallback to old options
-        addItemToCart(selectedItem, selectedOptions);
-        setSelectedItem(null);
-        setSelectedOptions([]);
-    };
-
-    const toggleOption = (option: MenuOption) => {
-        setSelectedOptions(prev => {
-            const exists = prev.find(o => o.name === option.name);
-            if (exists) {
-                return prev.filter(o => o.name !== option.name);
-            }
-            return [...prev, option];
-        });
-    };
-
-    const toggleGroupOption = (groupId: string, option: MenuOption, groupType: 'radio' | 'checkbox') => {
-        setSelectedGroupOptions(prev => {
-            const currentSelections = prev[groupId] || [];
-
-            if (groupType === 'radio') {
-                // Replace with new selection
-                return { ...prev, [groupId]: [option] };
-            } else {
-                // Toggle for checkbox
-                const exists = currentSelections.find(o => o.name === option.name);
-                if (exists) {
-                    return { ...prev, [groupId]: currentSelections.filter(o => o.name !== option.name) };
-                }
-                return { ...prev, [groupId]: [...currentSelections, option] };
-            }
         });
     };
 
@@ -362,20 +308,26 @@ function MenuPage() {
     }, 0);
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+    // Remove toggleOption, toggleGroupOption, handleConfirmOptions
+
     return (
         <div className={styles.container}>
+            {/* Announcement Modal */}
             {showAnnouncement && announcement && (
-                <div className={styles.announcementBanner}>
-                    <Megaphone size={20} style={{ marginRight: '8px' }} />
-                    <div className={styles.announcementContent}>
-                        {announcement.content}
+                <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
+                    <div className={styles.announcementModal}>
+                        <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#2d3436' }}>公告</h2>
+                        <div className={styles.announcementContent}>
+                            {announcement.content}
+                        </div>
+                        <button
+                            className={styles.confirmBtn}
+                            onClick={() => setShowAnnouncement(false)}
+                            style={{ marginTop: '1.5rem', width: '100%', background: '#f39c12' }}
+                        >
+                            確定
+                        </button>
                     </div>
-                    <button
-                        className={styles.closeAnnouncement}
-                        onClick={() => setShowAnnouncement(false)}
-                    >
-                        <X size={20} />
-                    </button>
                 </div>
             )}
             <header className={styles.header}>
@@ -404,8 +356,6 @@ function MenuPage() {
                     </button>
                 ))}
             </nav>
-
-            {/* 已移除 LINE 推廣橫幅，因為用戶在進入時就會被要求加入好友 */}
 
             <div className={`${styles.menuGrid} animate-fade-in`}>
                 {filteredItems.map((item, index) => (
@@ -462,106 +412,14 @@ function MenuPage() {
 
             {/* Options Modal */}
             {selectedItem && (
-                <div className={styles.modalOverlay} onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                        setSelectedItem(null);
-                        setSelectedOptions([]);
-                        setSelectedGroupOptions({});
-                    }
-                }}>
-                    <div className={styles.modal}>
-                        <h3>{selectedItem.name} - 客製化選項</h3>
-
-                        {/* New Option Groups UI */}
-                        {selectedItem.optionGroups && selectedItem.optionGroups.length > 0 ? (
-                            <div className={styles.optionsList}>
-                                {selectedItem.optionGroups.map((group, groupIdx) => (
-                                    <div key={group.id} style={{ marginBottom: '1.5rem' }}>
-                                        <h4 style={{
-                                            fontSize: '1rem',
-                                            color: '#2d3436',
-                                            marginBottom: '0.75rem',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem'
-                                        }}>
-                                            {group.name}
-                                            {group.required && <span style={{ color: '#e74c3c', fontSize: '0.85rem' }}>(必選)</span>}
-                                            <span style={{ color: '#95a5a6', fontSize: '0.85rem' }}>({group.type === 'radio' ? '單選' : '多選'})</span>
-                                        </h4>
-                                        {group.options.map((option, optIdx) => {
-                                            const isSelected = (selectedGroupOptions[group.id] || []).some(o => o.name === option.name);
-                                            return (
-                                                <div
-                                                    key={optIdx}
-                                                    className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
-                                                    onClick={() => toggleGroupOption(group.id, option, group.type)}
-                                                >
-                                                    <div className={styles.checkbox}>
-                                                        {isSelected && <Check size={16} color="white" />}
-                                                    </div>
-                                                    <span className={styles.optionName}>{option.name}</span>
-                                                    <span className={styles.optionPrice}>
-                                                        {option.price > 0 ? `+$${option.price}` : '免費'}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            /* Fallback to old options UI */
-                            <div className={styles.optionsList}>
-                                {selectedItem.options?.map((option, idx) => {
-                                    const isSelected = selectedOptions.some(o => o.name === option.name);
-                                    return (
-                                        <div
-                                            key={idx}
-                                            className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
-                                            onClick={() => toggleOption(option)}
-                                        >
-                                            <div className={styles.checkbox}>
-                                                {isSelected && <Check size={16} color="white" />}
-                                            </div>
-                                            <span className={styles.optionName}>{option.name}</span>
-                                            <span className={styles.optionPrice}>
-                                                {option.price > 0 ? `+$${option.price}` : '免費'}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        <div className={styles.modalActions}>
-                            <button
-                                className={styles.cancelBtn}
-                                onClick={() => {
-                                    setSelectedItem(null);
-                                    setSelectedOptions([]);
-                                    setSelectedGroupOptions({});
-                                }}
-                            >
-                                取消
-                            </button>
-                            <button
-                                className={styles.confirmBtn}
-                                onClick={handleConfirmOptions}
-                            >
-                                確認加入 (${
-                                    selectedItem.price +
-                                    (selectedItem.optionGroups
-                                        ? Object.values(selectedGroupOptions).flat().reduce((sum, opt) => sum + opt.price, 0)
-                                        : selectedOptions.reduce((sum, opt) => sum + opt.price, 0)
-                                    )
-                                })
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <OptionsModal
+                    item={selectedItem}
+                    onClose={() => setSelectedItem(null)}
+                    onConfirm={handleConfirmAddWithOptions}
+                />
             )}
 
+            {/* ... (keep rest of UI) */}
             {/* Floating Action Button for Cart (Mobile Friendly) */}
             {totalItems > 0 && !isCartOpen && (
                 <div className={styles.fabContainer}>
@@ -708,7 +566,6 @@ function MenuPage() {
                 </div>
             )}
 
-            {/* Order Confirmation Modal */}
             {showOrderConfirm && (
                 <div className={styles.modalOverlay} style={{ zIndex: 10000 }}>
                     <div className={styles.modal} style={{ maxWidth: '500px' }}>
@@ -802,7 +659,6 @@ function MenuPage() {
                 </div>
             )}
 
-            {/* Friend Invite Modal */}
             {showFriendInvite && (
                 <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
                     <div className={styles.friendInviteCard}>

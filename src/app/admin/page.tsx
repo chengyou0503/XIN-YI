@@ -10,6 +10,8 @@ import { MENU_DATA } from '@/lib/menuData'; // Import local data for instant loa
 import { AdminAuthService } from '@/lib/adminAuth';
 import { CATEGORIES } from '@/lib/mockData';
 import styles from './admin.module.css';
+import OptionsModal from '@/components/OptionsModal';
+import { MenuOption } from '@/types';
 
 export default function AdminPage() {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -38,6 +40,7 @@ export default function AdminPage() {
     // Order Editing State
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [editingOrderItems, setEditingOrderItems] = useState<Order['items']>([]);
+    const [selectedItemForOptions, setSelectedItemForOptions] = useState<MenuItem | null>(null);
 
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
@@ -63,14 +66,6 @@ export default function AdminPage() {
             console.log('✅ 音效播放成功');
         } catch (error) {
             console.warn('⚠️ 音效播放失敗:', error);
-            // 備用方案：使用 alert 的嗶聲（大多數瀏覽器都支援）
-            try {
-                const alertSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCVvx/DajUELFGS06tmkTBELP5jz/8p2LQ==');
-                alertSound.volume = 0.3;
-                alertSound.play();
-            } catch {
-                console.error('⚠️ 無法播放任何音效');
-            }
         }
     };
 
@@ -346,13 +341,34 @@ export default function AdminPage() {
     };
 
     const handleAddItemToEditingOrder = (item: MenuItem) => {
-        const existing = editingOrderItems.find(i => i.id === item.id);
-        if (existing) {
-            setEditingOrderItems(editingOrderItems.map(i =>
-                i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-            ));
+        // Check for options
+        if ((item.optionGroups && item.optionGroups.length > 0) || (item.options && item.options.length > 0)) {
+            setSelectedItemForOptions(item);
+            return;
+        }
+
+        addItemToEditingOrder(item, []);
+    };
+
+    const handleConfirmAddWithOptions = (item: MenuItem, options: MenuOption[]) => {
+        addItemToEditingOrder(item, options);
+        setSelectedItemForOptions(null);
+    };
+
+    const addItemToEditingOrder = (item: MenuItem, options: MenuOption[]) => {
+        // Check if item with same options already exists
+        const existingIndex = editingOrderItems.findIndex(i =>
+            i.id === item.id &&
+            JSON.stringify(i.selectedOptions?.sort((a, b) => a.name.localeCompare(b.name))) ===
+            JSON.stringify(options.sort((a, b) => a.name.localeCompare(b.name)))
+        );
+
+        if (existingIndex !== -1) {
+            const newItems = [...editingOrderItems];
+            newItems[existingIndex].quantity += 1;
+            setEditingOrderItems(newItems);
         } else {
-            setEditingOrderItems([...editingOrderItems, { ...item, quantity: 1 }]);
+            setEditingOrderItems([...editingOrderItems, { ...item, quantity: 1, selectedOptions: options }]);
         }
     };
 
@@ -1357,6 +1373,14 @@ export default function AdminPage() {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Options Modal for Admin Order Editing */}
+            {selectedItemForOptions && (
+                <OptionsModal
+                    item={selectedItemForOptions}
+                    onClose={() => setSelectedItemForOptions(null)}
+                    onConfirm={handleConfirmAddWithOptions}
+                />
             )}
         </div>
     );

@@ -6,6 +6,7 @@ import { UtensilsCrossed, Megaphone, X } from 'lucide-react';
 import { StorageService } from '@/lib/storage';
 import { Announcement } from '@/types';
 import styles from './page.module.css';
+import { useAuth } from './context/AuthContext';
 
 function HomePage() {
   const router = useRouter();
@@ -13,6 +14,8 @@ function HomePage() {
   const table = searchParams.get('table');
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+
+  const { user, isLoading, liffError } = useAuth();
 
   useEffect(() => {
     const unsubscribe = StorageService.subscribeToAnnouncements((data) => {
@@ -23,7 +26,16 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Only redirect if there's a table parameter
+    // If user is already logged in, redirect to menu
+    // This handles the case where user returns from LINE Login to the landing page
+    if (user && !isLoading) {
+      const targetUrl = table ? `/menu?table=${table}` : '/menu';
+      console.log('👤 User logged in, redirecting to:', targetUrl);
+      router.push(targetUrl);
+      return;
+    }
+
+    // Only redirect if there's a table parameter (and not yet logged in)
     if (table) {
       const timer = setTimeout(() => {
         router.push(`/menu?table=${table}`);
@@ -49,7 +61,31 @@ function HomePage() {
         console.error('Failed to parse liff.state', e);
       }
     }
-  }, [router, table, searchParams]);
+  }, [router, table, searchParams, user, isLoading]);
+
+  if (liffError) {
+    return (
+      <div className={styles.main} style={{ justifyContent: 'center' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#e74c3c' }}>
+          <h3>啟動失敗</h3>
+          <p>{liffError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '1rem',
+              padding: '0.5rem 1rem',
+              background: '#2d3436',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px'
+            }}
+          >
+            重試
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className={styles.main}>
