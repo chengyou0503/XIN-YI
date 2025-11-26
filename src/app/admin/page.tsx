@@ -38,30 +38,36 @@ export default function AdminPage() {
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
 
-        // Try to play audio file
-        const audio = new Audio('/alert.mp3');
-        audio.volume = 0.7; // Set volume to 70%
+        // 使用 Web Audio API 產生簡單嗶聲
+        try {
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
 
-        audio.play()
-            .then(() => {
-                console.log('✅ 音效播放成功');
-            })
-            .catch((error) => {
-                console.warn('⚠️ 音效播放失敗:', error);
-                // Fallback to system beep or speech
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance('有新訂單，請注意');
-                    utterance.lang = 'zh-TW';
-                    utterance.rate = 1.2;
-                    window.speechSynthesis.speak(utterance);
-                    console.log('🔊 使用語音替代通知');
-                }
-            });
-    };
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
 
-    const testNotificationSound = () => {
-        console.log('🧪 測試音效播放');
-        playNotificationSound();
+            // 設定音頻參數
+            oscillator.frequency.value = 800; // 頻率 800Hz
+            oscillator.type = 'sine'; // 正弦波
+            gainNode.gain.value = 0.3; // 音量 30%
+
+            // 播放 0.2 秒的嗶聲
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+
+            console.log('✅ 音效播放成功');
+        } catch (error) {
+            console.warn('⚠️ 音效播放失敗:', error);
+            // 備用方案：使用 alert 的嗶聲（大多數瀏覽器都支援）
+            try {
+                const alertSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCVvx/DajUELFGS06tmkTBELP5jz/8p2LQ==');
+                alertSound.volume = 0.3;
+                alertSound.play();
+            } catch {
+                console.error('⚠️ 無法播放任何音效');
+            }
+        }
     };
 
     // No longer needed - using real-time subscriptions

@@ -231,6 +231,10 @@ function MenuPage() {
         console.log('🔢 桌號:', tableId);
         console.log('🛒 購物車品項:', cart.length);
         console.log('💰 訂單總金額:', cart.reduce((sum, item) => sum + item.price * item.quantity, 0));
+        console.log('👤 用戶登入狀態:', user ? '已登入' : '未登入');
+        console.log('👤 User 物件:', user);
+        console.log('🆔 User ID:', user?.id);
+        console.log('👥 好友狀態:', isFriend ? '已加好友' : '未加好友');
 
         try {
             // Save order (使用 await 確保儲存完成)
@@ -273,7 +277,10 @@ function MenuPage() {
                     console.error('- User ID 問題？請確認 LIFF 有正確回傳 userId');
                 }
             } else {
-                console.warn('⚠️ 使用者未登入或無 userId，跳過 LINE 通知');
+                console.warn('========== ⚠️ 跳過 LINE 通知 ==========');
+                console.warn('原因: 使用者未登入或無 userId');
+                console.warn('User:', user);
+                console.warn('User ID:', user?.id);
             }
 
             setCart([]);
