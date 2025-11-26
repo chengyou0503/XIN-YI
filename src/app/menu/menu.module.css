@@ -798,14 +798,53 @@
 @keyframes bounce {
 
     0%,
+    20%,
+    50%,
+    80%,
     100% {
         transform: translateY(0);
     }
 
-    50% {
+    40% {
+        transform: translateY(-20px);
+    }
+
+    60% {
         transform: translateY(-10px);
     }
 }
+
+.announcementBanner {
+    width: 100%;
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    animation: slideDown 0.3s ease-out;
+    position: relative;
+    z-index: 101;
+}
+
+.announcementContent {
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.closeAnnouncement {
+    background: none;
+    border: none;
+    color: #856404;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+}
+
 
 /* Responsive Design */
 @media (max-width: 768px) {

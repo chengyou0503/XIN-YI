@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Order, MenuItem, CategoryItem } from '@/types';
-import { Plus, Edit, Trash2, Upload, Save, X, Utensils, LogOut, QrCode, CheckCircle, DollarSign, ChefHat } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Save, X, Utensils, LogOut, QrCode, CheckCircle, DollarSign, ChefHat, Megaphone } from 'lucide-react';
 import { StorageService } from '@/lib/storage';
 import { ImageUploadService } from '@/lib/imageUpload';
 import { MENU_DATA } from '@/lib/menuData'; // Import local data for instant load
@@ -503,6 +503,12 @@ export default function AdminPage() {
                     >
                         歷史帳務
                     </button>
+                    <button
+                        className={styles.navBtn}
+                        onClick={() => router.push('/admin/announcements')}
+                    >
+                        <Megaphone size={18} /> 公告管理
+                    </button>
                     {/* 分類管理已整合到菜單管理頁面 */}
                     <button
                         className={styles.navBtn}
@@ -736,55 +742,148 @@ export default function AdminPage() {
                                             </small>
                                         </label>
 
-                                        <div className={styles.optionsSection}>
-                                            <h4>客製化選項</h4>
-                                            <div className={styles.optionsList}>
-                                                {editingItem.options?.map((option, idx) => (
-                                                    <div key={idx} className={styles.optionItem}>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="選項名稱 (如: 加飯)"
-                                                            value={option.name}
-                                                            onChange={(e) => {
-                                                                const newOptions = [...(editingItem.options || [])];
-                                                                newOptions[idx].name = e.target.value;
-                                                                setEditingItem({ ...editingItem, options: newOptions });
-                                                            }}
-                                                        />
-                                                        <input
-                                                            type="number"
-                                                            placeholder="價格"
-                                                            value={option.price}
-                                                            onChange={(e) => {
-                                                                const newOptions = [...(editingItem.options || [])];
-                                                                newOptions[idx].price = Number(e.target.value);
-                                                                setEditingItem({ ...editingItem, options: newOptions });
-                                                            }}
-                                                            style={{ width: '80px' }}
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newOptions = editingItem.options?.filter((_, i) => i !== idx);
-                                                                setEditingItem({ ...editingItem, options: newOptions });
-                                                            }}
-                                                            className={styles.removeOptionBtn}
-                                                        >
-                                                            <X size={16} />
-                                                        </button>
+
+                                        {/* Option Groups Management */}
+                                        <div className={styles.optionGroupsSection}>
+                                            <h4>客製化選項群組</h4>
+                                            <div>
+                                                {editingItem.optionGroups?.map((group, groupIdx) => (
+                                                    <div key={group.id} className={styles.optionGroupCard}>
+                                                        <div className={styles.groupHeader}>
+                                                            <div className={styles.groupInputs}>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="群組名稱 (例如: 辣度、加料)"
+                                                                    value={group.name}
+                                                                    onChange={(e) => {
+                                                                        const newGroups = [...(editingItem.optionGroups || [])];
+                                                                        newGroups[groupIdx].name = e.target.value;
+                                                                        setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                    }}
+                                                                />
+                                                                <select
+                                                                    value={group.type}
+                                                                    onChange={(e) => {
+                                                                        const newGroups = [...(editingItem.optionGroups || [])];
+                                                                        newGroups[groupIdx].type = e.target.value as 'radio' | 'checkbox';
+                                                                        setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                    }}
+                                                                >
+                                                                    <option value="radio">單選</option>
+                                                                    <option value="checkbox">多選</option>
+                                                                </select>
+                                                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={group.required}
+                                                                        onChange={(e) => {
+                                                                            const newGroups = [...(editingItem.optionGroups || [])];
+                                                                            newGroups[groupIdx].required = e.target.checked;
+                                                                            setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                        }}
+                                                                    />
+                                                                    必選
+                                                                </label>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                className={styles.removeGroupBtn}
+                                                                onClick={() => {
+                                                                    const newGroups = editingItem.optionGroups?.filter((_, i) => i !== groupIdx);
+                                                                    setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                }}
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </div>
+
+                                                        <div className={styles.groupOptionsList}>
+                                                            {group.options.map((option, optIdx) => (
+                                                                <div key={optIdx} className={styles.groupOptionItem}>
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="選項名稱"
+                                                                        value={option.name}
+                                                                        onChange={(e) => {
+                                                                            const newGroups = [...(editingItem.optionGroups || [])];
+                                                                            newGroups[groupIdx].options[optIdx].name = e.target.value;
+                                                                            setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                        }}
+                                                                        style={{ flex: 1 }}
+                                                                    />
+                                                                    <input
+                                                                        type="number"
+                                                                        placeholder="價格"
+                                                                        value={option.price}
+                                                                        onChange={(e) => {
+                                                                            const newGroups = [...(editingItem.optionGroups || [])];
+                                                                            newGroups[groupIdx].options[optIdx].price = Number(e.target.value);
+                                                                            setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                        }}
+                                                                        style={{ width: '80px' }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const newGroups = [...(editingItem.optionGroups || [])];
+                                                                            newGroups[groupIdx].options = newGroups[groupIdx].options.filter((_, i) => i !== optIdx);
+                                                                            setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                        }}
+                                                                        style={{
+                                                                            background: 'none',
+                                                                            border: 'none',
+                                                                            color: '#e74c3c',
+                                                                            cursor: 'pointer',
+                                                                            padding: '4px'
+                                                                        }}
+                                                                    >
+                                                                        <X size={16} />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newGroups = [...(editingItem.optionGroups || [])];
+                                                                    newGroups[groupIdx].options.push({ name: '', price: 0 });
+                                                                    setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                }}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    padding: '0.5rem',
+                                                                    background: '#f1f2f6',
+                                                                    border: '1px dashed #dfe6e9',
+                                                                    borderRadius: '8px',
+                                                                    color: '#636e72',
+                                                                    cursor: 'pointer',
+                                                                    fontSize: '0.9rem',
+                                                                    marginTop: '0.5rem'
+                                                                }}
+                                                            >
+                                                                <Plus size={14} /> 新增選項
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 ))}
+
+                                                <button
+                                                    type="button"
+                                                    className={styles.addGroupBtn}
+                                                    onClick={() => {
+                                                        const newGroups = [...(editingItem.optionGroups || [])];
+                                                        newGroups.push({
+                                                            id: `group-${Date.now()}`,
+                                                            name: '',
+                                                            type: 'radio',
+                                                            required: false,
+                                                            options: []
+                                                        });
+                                                        setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                    }}
+                                                >
+                                                    <Plus size={16} /> 新增選項群組
+                                                </button>
                                             </div>
-                                            <button
-                                                type="button"
-                                                className={styles.addOptionBtn}
-                                                onClick={() => {
-                                                    const newOptions = [...(editingItem.options || []), { name: '', price: 0 }];
-                                                    setEditingItem({ ...editingItem, options: newOptions });
-                                                }}
-                                            >
-                                                <Plus size={16} /> 新增選項
-                                            </button>
                                         </div>
 
                                         <div className={styles.modalFooter} style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>

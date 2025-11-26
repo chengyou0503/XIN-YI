@@ -1,4 +1,4 @@
-import { MenuItem, Order, CartItem, CategoryItem } from '../types';
+import { MenuItem, Order, CartItem, CategoryItem, Announcement } from '../types';
 import { MOCK_MENU } from './mockData';
 import { db } from './firebaseConfig';
 import {
@@ -19,16 +19,19 @@ const COLLECTIONS = {
     MENU: 'menu',
     ORDERS: 'orders',
     CATEGORIES: 'categories',
+    ANNOUNCEMENTS: 'announcements',
 };
 
 type OrdersCallback = (orders: Order[]) => void;
 type MenuCallback = (menu: MenuItem[]) => void;
 type CategoriesCallback = (categories: CategoryItem[]) => void;
+type AnnouncementsCallback = (announcements: Announcement[]) => void;
 
 export class StorageService {
     private static ordersUnsubscribe: (() => void) | null = null;
     private static menuUnsubscribe: (() => void) | null = null;
     private static categoriesUnsubscribe: (() => void) | null = null;
+    private static announcementsUnsubscribe: (() => void) | null = null;
 
     // Menu Methods
     static async getMenu(): Promise<MenuItem[]> {
@@ -392,6 +395,63 @@ export class StorageService {
         if (this.categoriesUnsubscribe) {
             this.categoriesUnsubscribe();
             this.categoriesUnsubscribe = null;
+        }
+    }
+
+    // Announcement Methods
+    static async saveAnnouncement(announcement: Announcement): Promise<void> {
+        try {
+            await setDoc(doc(db, COLLECTIONS.ANNOUNCEMENTS, announcement.id), {
+                ...announcement,
+                createdAt: announcement.createdAt instanceof Date
+                    ? Timestamp.fromDate(announcement.createdAt)
+                    : announcement.createdAt,
+                updatedAt: announcement.updatedAt instanceof Date
+                    ? Timestamp.fromDate(announcement.updatedAt)
+                    : announcement.updatedAt
+            });
+        } catch (error) {
+            console.error('Error saving announcement:', error);
+            throw error;
+        }
+    }
+
+    static async deleteAnnouncement(id: string): Promise<void> {
+        try {
+            await deleteDoc(doc(db, COLLECTIONS.ANNOUNCEMENTS, id));
+        } catch (error) {
+            console.error('Error deleting announcement:', error);
+            throw error;
+        }
+    }
+
+    static subscribeToAnnouncements(callback: AnnouncementsCallback) {
+        const q = query(collection(db, COLLECTIONS.ANNOUNCEMENTS), orderBy('createdAt', 'desc'));
+
+        this.announcementsUnsubscribe = onSnapshot(q, (snapshot) => {
+            const announcements = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    id: doc.id,
+                    createdAt: data.createdAt instanceof Timestamp
+                        ? data.createdAt.toDate()
+                        : new Date(data.createdAt),
+                    updatedAt: data.updatedAt instanceof Timestamp
+                        ? data.updatedAt.toDate()
+                        : new Date(data.updatedAt)
+                } as Announcement;
+            });
+            callback(announcements);
+        });
+
+        return this.announcementsUnsubscribe;
+    }
+
+    static unsubscribeFromAnnouncements() {
+        if (this.announcementsUnsubscribe) {
+            this.announcementsUnsubscribe();
+            this.announcementsUnsubscribe = null;
         }
     }
 }

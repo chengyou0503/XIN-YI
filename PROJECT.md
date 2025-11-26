@@ -1,343 +1,157 @@
 # Stir-Fry POS 系統 - 專案文件
 
-# 輸出規格
-> **語言要求**：所有回覆、思考過程及任務清單必須使用**繁體中文**(zh-TW)。
-> **固定指令**：`Implementation Plan, Task List and Thought in **Traditional Chinese**`
 ## 專案概述
-
-新易現炒店點餐系統 (Stir-Fry POS) 是一個基於 Next.js 開發的餐廳點餐管理系統，整合 Firebase 作為後端資料庫和 LINE LIFF 作為前端使用者介面。
+**新易現炒 POS 系統** 是一套完整的餐廳點餐與管理系統，整合 LINE LIFF 登入、Firebase 後端、即時訂單通知等功能。
 
 ## 技術架構
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Vercel (生產環境)                      │
-│              https://xin-yi-pos.vercel.app              │
-└─────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                   Next.js 14 (App Router)                │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │  前台 (客戶)  │  │  後台 (管理)  │  │  QR Code     │  │
-│  │  /menu       │  │  /admin      │  │  /admin/qr   │  │
-│  └──────────────┘  └──────────────┘  └──────────────┘  │
-└─────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│              Firebase (xiyi-c4266)                       │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
-│  │ Firestore  │  │  Storage   │  │    Auth    │        │
-│  │  (資料庫)  │  │  (圖片)    │  │  (待整合)  │        │
-│  └────────────┘  └────────────┘  └────────────┘        │
-└─────────────────────────────────────────────────────────┘
-```
-
-### 前端技術棧
-- **框架**: Next.js 14 (App Router)
-- **語言**: TypeScript
+- **前端框架**: Next.js 14 (App Router)
 - **樣式**: CSS Modules
-- **圖標**: lucide-react
-- **狀態管理**: React Context + useState
+- **後端服務**: Firebase (Firestore, Storage, Hosting)
+- **身份驗證**: LINE LIFF
+- **部署**: Firebase Hosting + GitHub Actions
+- **通知系統**: LINE Messaging API
 
-### 後端服務
-- **資料庫**: Firebase Firestore
-- **檔案儲存**: Firebase Storage
-- **身份驗證**: LINE LIFF (規劃中)
+## 近期完成的關鍵功能
 
-## 專案結構
+### 🎉 2025-11-26 最新完成
+- ✅ **公告系統**：
+  - 後台可新增、編輯、刪除公告，並切換啟用狀態
+  - 前台（首頁與點餐頁）顯示啟用的公告橫幅
+  - 支援用戶手動關閉公告
+- ✅ **客製化選項群組系統**：
+  - 後台支援為每個餐點建立多個選項群組（單選/多選）
+  - 可設定群組為必選或選填
+  - 前台點餐時根據群組類型顯示 Radio 或 Checkbox
+  - 自動驗證必選項目並計算總價
+- ✅ **部署架構遷移**：
+  - 從 Vercel 遷移至 Firebase Hosting
+  - 使用 GitHub Actions 自動部署
+  - 已設定 Service Account 與 GitHub Secrets
 
-```
-stir-fry-pos/
-├── src/
-│   ├── app/                    # Next.js App Router 頁面
-│   │   ├── page.tsx           # 首頁 (重導向至 /menu)
-│   │   ├── menu/              # 前台點餐頁面
-│   │   │   ├── page.tsx
-│   │   │   └── menu.module.css
-│   │   ├── admin/             # 後台管理
-│   │   │   ├── page.tsx       # 訂單/菜單管理
-│   │   │   ├── login/         # 管理員登入
-│   │   │   ├── qr/            # QR Code 產生器
-│   │   │   └── admin.module.css
-│   │   └── context/           # React Context
-│   │       └── AuthContext.tsx
-│   ├── lib/                   # 核心函式庫
-│   │   ├── firebase.ts        # Firebase 初始化
-│   │   ├── firebaseConfig.ts  # Firebase 配置
-│   │   ├── storage.ts         # Firestore 資料操作
-│   │   ├── imageUpload.ts     # 圖片上傳/刪除
-│   │   ├── adminAuth.ts       # 管理員驗證
-│   │   ├── menuData.ts        # 預設菜單資料
-│   │   └── mockData.ts        # Mock 資料
-│   └── types/                 # TypeScript 型別定義
-│       └── index.ts
-├── public/                    # 靜態資源
-│   ├── alert.mp3             # 訂單通知音效
-│   └── placeholder.jpg       # 圖片佔位符
-├── .env.local                # 環境變數 (本地)
-├── firebase.json             # Firebase 配置
-├── storage.rules             # Firebase Storage 規則
-├── cors.json                 # CORS 設定
-└── package.json
+### 🔧 先前完成
+- ✅ **QR Code 掃描**：已修正 LIFF 重新導向問題，掃描後可正常進入點餐頁面
+- ✅ **訂單送出前確認對話框**：防止誤點，點擊「送出」會先顯示確認模態框
+- ✅ **成功畫面「知道了」按鈕**：已改為僅關閉成功畫面，避免再次觸發送單流程
+- ✅ **LINE 推播日誌加強**：在前端與 `/api/line/push` 後端加入詳細 console 日誌
+- ✅ **後台新訂單音效**：改為使用 Web Audio API 產生簡短嗶聲
+- ✅ **動態分類管理系統**：可在後台新增/刪除分類
 
-```
+## 仍在追蹤的問題
+- 📢 **LINE 訊息未送達**：API 回傳成功，但客戶仍未收到訊息，需確認：
+  - LINE 官方帳號已加為好友
+  - Bot 已啟用
+  - Flex Message 格式符合規範
+- 🔔 **後台音效**：目前使用嗶聲，若需其他音效可再調整
 
-## 核心功能
+## 待開發功能 (優先順序)
+1. ✅ ~~公告系統~~ (已完成)
+2. ✅ ~~客製化選項系統~~ (已完成)
+3. **後台訂單編輯** – 允許員工在結帳前修改訂單內容（品項、數量、選項）
+4. **報表系統** – 營收統計、熱銷商品分析
 
-### 前台 (客戶端) - `/menu`
-- ✅ 掃描 QR Code 進入點餐頁面
-- ✅ 瀏覽菜單（依類別篩選，動態分類）
-- ✅ 加入購物車（支援客製化選項）
-- ✅ **品項數量調整**：直接在菜單卡片上 +/- 調整數量
-- ✅ **購物車數量顯示**：按鈕顯示「已加入 X」狀態
-- ✅ 送出訂單至 Firestore
-- ✅ LINE 通知整合（待完善）
-- ✅ 好友邀請提示（進入時自動顯示）
+## 部署資訊
 
-### 後台 (管理端) - `/admin`
-- ✅ 訂單管理（等待中、製作中、已完成）
-- ✅ 廚房看板（即時顯示製作中訂單）
-- ✅ 菜單管理（新增、編輯、刪除、圖片上傳/刪除）
-- ✅ **分類管理**：整合在菜單管理頁面，動態新增/刪除分類
-- ✅ 歷史帳務（營業額統計）
-- ✅ QR Code 產生器
-- ✅ 即時訂單通知音效
+### Firebase Hosting (目前使用)
+- **專案 ID**: `xiyi-c4266`
+- **Firebase 方案**: Blaze (Pay as you go)
+- **部署方式**: GitHub Actions (推送至 `main` 分支自動部署)
+- **GitHub Repository**: `chengyou0503/XIN-YI`
 
-## 環境變數設定
+### Vercel (已停用)
+- ~~Vercel 生產網址: https://xin-yi-pos.vercel.app~~ (免費額度用完，已遷移)
 
-### `.env.local` 必要變數
+## 環境變數
 
-```bash
+### Local Development (`.env.local`)
+```env
 # Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyBlJ8kU8aZyReaH6NP40G-uHeOTFXxwtfE
+NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xiyi-c4266.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=xiyi-c4266
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=xiyi-c4266.firebasestorage.app
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=355458948400
-NEXT_PUBLIC_FIREBASE_APP_ID=1:355458948400:web:87a5968f18525ff10bbcf5
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-B7QK18HY6N
 
 # LINE Configuration
-CHANNEL_ACCESS_TOKEN=z9rZzIn7yNRAjpTKEaOr97LdWatv01cuh0zddsKQFjf4crO3HTiLAfa574xRNRP10xRvWFEXdmLq+K/ZEIcehNEVU1SSekZCfwJE+BHlGb7ncDE+OJxKuRqdJ2tVEimV+UmrYJu6h9D5RFcLy1MZygdB04t89/1O/w1cDnyilFU=
+CHANNEL_ACCESS_TOKEN=5UZ8jthUVAdQpxaczdPx5z6T5TYOfdxrFnPCi3JBaeFDFRsXHEIb2hU6QGfyVHTE0xRvWFEXdmLq+K/ZEIcehNEVU1SSekZCfwJE+BHlGb4K9qYLHys3Dpc43rJQhmkBqpUHoApexgnxSdSGz5jiMQdB04t89/1O/w1cDnyilFU=
 CHANNEL_SECRET=06c9612939f7987d1c9e9c42f285a5ab
 NEXT_PUBLIC_LINE_LIFF_ID=2007818450-kYXd68rR
 ```
 
-### Vercel 環境變數
-需要在 Vercel Dashboard → Settings → Environment Variables 設定上述所有變數。
+### GitHub Secrets (已設定)
+- `FIREBASE_SERVICE_ACCOUNT_XIYI_C4266`: Firebase Service Account JSON (用於 CI/CD)
 
-## 部署流程
+## 資料結構
 
-### 1. 本地開發
+### MenuItem
+```typescript
+{
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  imageUrl: string;
+  available: boolean;
+  options?: MenuOption[]; // Deprecated
+  optionGroups?: OptionGroup[]; // 新格式
+}
+```
 
+### OptionGroup
+```typescript
+{
+  id: string;
+  name: string; // 例如：辣度、加料
+  type: 'radio' | 'checkbox'; // 單選或多選
+  required: boolean;
+  options: MenuOption[];
+}
+```
+
+### Announcement
+```typescript
+{
+  id: string;
+  title: string;
+  content: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+## 重要修正紀錄
+- 圖片上傳 CORS 錯誤已解決
+- 編輯菜單後 Modal 正確關閉
+- QR Code 重新導向問題已修正
+- 動態分類管理系統完成並整合至菜單管理頁面
+- 菜單資料從簡單選項升級為選項群組架構
+- 部署平台從 Vercel 遷移至 Firebase Hosting
+
+## 開發指南
+
+### 本地開發
 ```bash
-# 安裝依賴
 npm install
-
-# 啟動開發伺服器
 npm run dev
-
-# 在瀏覽器開啟 http://localhost:3000
 ```
 
-### 2. Firebase 設定
-
+### 部署到 Firebase
 ```bash
-# 部署 Storage 規則
-firebase deploy --only storage
-
-# 設定 CORS（若需要）
-gsutil cors set cors.json gs://xiyi-c4266.firebasestorage.app
-```
-
-### 3. 部署至 Vercel
-
-```bash
-# 方法一：透過 Vercel CLI
-npm install -g vercel
-vercel login
-vercel --prod
-
-# 方法二：透過 GitHub 自動部署
-# 1. 推送至 GitHub main 分支
+# 推送至 GitHub main 分支會自動觸發部署
 git push origin main
 
-# 2. Vercel 自動偵測並部署
+# 或手動部署
+firebase deploy --only hosting
 ```
 
-### 4. 設定別名（若需要）
-
-```bash
-vercel alias set <deployment-url> xin-yi-pos.vercel.app
-```
-
-## 管理員帳號
-
-預設管理員帳號密碼（寫死在程式碼中）：
-- **帳號**: `admin`  
-- **密碼**: `admin`
-
-> ⚠️ **安全建議**: 正式環境應改用 Firebase Authentication
-
-## 重要修正記錄
-
-### 圖片上傳 CORS 錯誤
-- **問題**: URL 中出現 `%0A`（換行符）
-- **解決**: 在 `firebaseConfig.ts` 中硬編碼 `storageBucket` 名稱
-
-### 編輯餐點儲存後 Modal 不關閉
-- **問題**: 異步儲存阻塞 UI 更新
-- **解決**: 使用 `setTimeout` 延遲狀態更新至下一個事件循環
-
-### QR Code 掃描問題
-- **問題**: LIFF URL 導向問題
-- **解決**: 改用應用程式直接 URL (`/menu?table={tableId}`)
-
-### 動態分類管理系統 (2025-11-25)
-- **新增**: 完整的分類管理功能
-- **實作**: 
-  - 將分類從硬編碼改為 Firestore 儲存
-  - 後台新增「分類管理」標籤頁
-  - 支援新增/刪除分類（刪除前檢查菜單使用情況）
-  - 前後台即時同步分類更新
-- **技術**: `CategoryItem` 型別、StorageService 擴展
-
-### 前台購物車數量顯示 (2025-11-25)
-- **新增**: 菜單卡片顯示已加入數量
-- **實作**:
-  - 按鈕顯示「已加入 X」並變更顏色
-  - 使用 `getItemQuantityInCart()` 計算數量
-  - 綠色視覺標示已加入狀態
-
-### 前台品項數量調整 (2025-11-25)
-- **新增**: 直接在菜單卡片上調整數量
-- **實作**:
-  - 數量 = 0：顯示「加入」按鈕
-  - 數量 > 0：顯示 +/- 按鈕和數量
-  - 無需打開購物車即可增減
-- **改進**: 移除會員優惠橫幅（已在進入時要求加入好友）
-
-### 分類管理 UI 整合 (2025-11-25)
-- **重構**: 移除獨立的分類管理標籤頁
-- **整合**: 將分類管理併入菜單管理頁面頂部
-- **視覺**: 
-  - 漸層分類標籤（紫色）
-  - 顯示使用數量
-  - 內嵌刪除按鈕
-  - 虛線邊框新增按鈕
-- **優點**: 分類和菜單在同一介面，更直覺
-
-### 圖片上傳持久化修復 (2025-11-25)
-- **問題**: 圖片上傳後重新整理消失
-- **診斷**: 增加詳細的 Console 除錯日誌
-- **修復**: 確保 `editingItem` 的最新值（含 imageUrl）被正確儲存
-- **提醒**: 上傳圖片後需點擊「儲存」按鈕
-
-## 資料模型
-
-### MenuItem (菜單項目)
-```typescript
-{
-  id: string;           // 唯一識別碼
-  name: string;         // 餐點名稱
-  price: number;        // 價格
-  category: Category;   // 類別
-  imageUrl: string;     // 圖片 URL
-  description?: string; // 描述
-  available: boolean;   // 是否供應
-  options?: MenuOption[]; // 客製化選項
-}
-```
-
-### Order (訂單)
-```typescript
-{
-  id: string;           // 訂單ID
-  tableId: string;      // 桌號
-  items: CartItem[];    // 品項清單
-  totalAmount: number;  // 總金額
-  status: 'pending' | 'cooking' | 'served'; // 狀態
-  createdAt: string;    // 建立時間
-  lineUserId?: string;  // LINE 用戶ID
-}
-```
-
-### CategoryItem (分類項目) - **新增**
-```typescript
-{
-  id: string;           // 分類唯一識別碼
-  name: string;         // 分類名稱（如：鐵板類）
-  displayOrder: number; // 顯示順序
-  createdAt: Date;      // 建立時間
-}
-```
-
-## 最近更新 (2025-11-25)
-
-### ✅ 已完成
-- ✅ 動態分類管理系統（Firestore 儲存）
-- ✅ **分類管理 UI 整合**：併入菜單管理頁面
-- ✅ 前台購物車數量顯示
-- ✅ 前台品項數量調整（+/- 按鈕）
-- ✅ 圖片上傳持久化修復
-- ✅ 移除會員優惠橫幅
-- ✅ 增加除錯日誌追蹤
-- ✅ **管理員身份驗證強化**：
-  - 整合 Firebase Authentication (Email/Password)
-  - 新增 `AdminLayout` 進行全域路由保護
-  - 移除硬編碼的帳號密碼
-- ✅ **緊急修復 (2025-11-26)**：
-  - **前台點餐**：放寬 LINE 好友檢查，允許確認後送出訂單
-  - **後台登入**：新增明確錯誤提示，引導使用 Firebase 帳號
-  - **圖片上傳**：
-    - 新增「請點擊儲存」的防呆提示
-    - **核心修復**：重構儲存邏輯，改為單一項目更新 (`saveMenuItem`)，徹底解決資料覆蓋導致圖片遺失的問題
-  - **分類管理 UI 改善**: 重構為模態框介面,提供更直觀的分類新增/刪除體驗
-- ✅ **訂單流程優化 (2025-11-26 09:25)**:
-  - **訂單確認 UI**: 改善成功訊息,顯示完整訂單詳情（桌號、餐點清單、總金額）
-  - **Firebase 配置強化**: 
-    - 統一 `firebase.ts` 和 `firebaseConfig.ts` 使用環境變數清理函數
-    - 移除所有換行符號和空白字符修復圖片上傳 CORS 錯誤
-    - 加入硬編碼備用值防止環境變數問題
-- ✅ **訂單確認 UI 改善 (2025-11-26 10:08)**:
-  - 移除 8 秒自動關閉機制，改為手動關閉
-  - 優化視覺設計：加大畫面尺寸（480px）、支持滾動、改善動畫
-  - 提升圖標尺寸（96px）與視覺精緻度
-
-### ⚠️ 待解決 - Firebase 權限配置
-**問題**: Firestore Security Rules 過於嚴格,導致所有讀寫操作失敗
-**錯誤訊息**: `FirebaseError: Missing or insufficient permissions`
-**影響範圍**: 
-- 無法儲存菜單和分類
-- 無法上傳圖片後保存到 Firestore
-- 無法創建訂單
-
-**解決步驟**:
-1. 前往 [Firebase Console](https://console.firebase.google.com/)
-2. 選擇專案 `xiyi-c4266`
-3. 左側選單：Firestore Database → Rules
-4. 複製 `FIRESTORE_SECURITY_RULES.txt` 的內容並發佈
-5. 左側選單：Storage → Rules  
-6. 複製 `STORAGE_SECURITY_RULES.txt` 的內容並發佈
-
-**注意**: 圖片上傳到 Storage 已成功,只是無法保存 URL 到 Firestore
-
-### 🔄 進行中
-- [ ] 整合 LINE LIFF 真實登入 (已在代碼中，待驗證)
-- [ ] 實作 LINE 訂單通知 (已在代碼中，待驗證)
-
-### 📋 待辦事項
-
-- [ ] 整合 LINE LIFF 真實登入
-- [ ] 實作 LINE 訂單通知
-- [ ] 新增訂單修改功能
-- [ ] 報表與數據分析
-- [ ] 多語系支援
+### 初始化菜單資料
+1. 進入後台 `/admin`
+2. 點擊「菜單管理」
+3. 點擊「快速載入預設菜單」按鈕
 
 ## 聯絡資訊
+- **LINE 官方帳號**: @080pkuoh
+- **Firebase 專案管理員**: lin1023.ai@gmail.com, workistired@gmail.com
 
-- **GitHub**: [chengyou0503/XIN-YI](https://github.com/chengyou0503/XIN-YI)
-- **Vercel**: `https://xin-yi-pos.vercel.app`
-- **Firebase Project**: `xiyi-c4266`
+---
+
+*此文件由 Antigravity AI 於 2025-11-26 12:47 更新*

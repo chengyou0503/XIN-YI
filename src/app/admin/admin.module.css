@@ -1326,3 +1326,87 @@
         transform: rotate(360deg);
     }
 }
+/* Option Groups Management */
+.optionGroupsSection {
+    margin-top: 1rem;
+    border-top: 1px solid #f1f2f6;
+    padding-top: 1rem;
+}
+
+.optionGroupCard {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.groupHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.groupInputs {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.groupOptionsList {
+    background: white;
+    border-radius: 8px;
+    padding: 0.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.groupOptionItem {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.removeGroupBtn {
+    background: #ffeaa7;
+    color: #d63031;
+    border: none;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.removeGroupBtn:hover {
+    background: #ff7675;
+    color: white;
+}
+
+.addGroupBtn {
+    width: 100%;
+    padding: 0.8rem;
+    background: #dfe6e9;
+    color: #2d3436;
+    border: 2px dashed #b2bec3;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.addGroupBtn:hover {
+    background: #b2bec3;
+    color: white;
+    border-color: #636e72;
+}

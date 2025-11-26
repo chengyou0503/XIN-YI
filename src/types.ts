@@ -3,6 +3,14 @@ export interface MenuOption {
     price: number;
 }
 
+export interface OptionGroup {
+    id: string;
+    name: string;
+    type: 'radio' | 'checkbox';
+    required: boolean;
+    options: MenuOption[];
+}
+
 export interface MenuItem {
     id: string;
     name: string;
@@ -11,7 +19,8 @@ export interface MenuItem {
     category: string;
     imageUrl: string;
     available: boolean;
-    options?: MenuOption[];
+    options?: MenuOption[]; // Deprecated, keeping for backward compatibility
+    optionGroups?: OptionGroup[];
 }
 
 export interface CartItem extends MenuItem {
@@ -38,3 +47,13 @@ export interface CategoryItem {
 
 // 分類型別（動態字串，支援任意分類名稱）
 export type Category = string;
+
+// 公告介面
+export interface Announcement {
+    id: string;
+    title: string;
+    content: string;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}

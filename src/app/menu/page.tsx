@@ -3,8 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/lib/mockData';
-import { MenuItem, CartItem, Category, MenuOption, CategoryItem, Order } from '@/types';
-import { ShoppingCart, Plus, Minus, X, Utensils, Check } from 'lucide-react';
+import { MenuItem, CartItem, Category, MenuOption, CategoryItem, Order, Announcement } from '@/types';
+import { ShoppingCart, Plus, Minus, X, Utensils, Check, Megaphone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { StorageService } from '@/lib/storage';
 import { MENU_DATA } from '@/lib/menuData';
@@ -27,6 +27,7 @@ function MenuPage() {
     // Options Modal State
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
     const [selectedOptions, setSelectedOptions] = useState<MenuOption[]>([]);
+    const [selectedGroupOptions, setSelectedGroupOptions] = useState<Record<string, MenuOption[]>>({});
 
     const [isSuccess, setIsSuccess] = useState(false);
     const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
@@ -37,6 +38,10 @@ function MenuPage() {
 
     // 動態分類狀態
     const [categories, setCategories] = useState<string[]>(['鐵板類', '燴飯類', '現炒類', '三杯類', '炒飯類', '湯麵類', '湯類', '蔬菜類', '飲料類']);
+
+    // 公告狀態
+    const [announcement, setAnnouncement] = useState<Announcement | null>(null);
+    const [showAnnouncement, setShowAnnouncement] = useState(true);
 
     // 輔助函數：計算購物車中該商品的數量
     const getItemQuantityInCart = (itemId: string): number => {
@@ -86,6 +91,15 @@ function MenuPage() {
             unsubscribeCategories();
         };
     }, [activeCategory]);
+
+    // 訂閱公告
+    useEffect(() => {
+        const unsubscribe = StorageService.subscribeToAnnouncements((data) => {
+            const active = data.find(a => a.isActive);
+            setAnnouncement(active || null);
+        });
+        return () => unsubscribe();
+    }, []);
 
     if (isLoading) {
         return (
@@ -149,6 +163,13 @@ function MenuPage() {
     };
 
     const addToCart = (item: MenuItem) => {
+        // Check for new option groups format
+        if (item.optionGroups && item.optionGroups.length > 0) {
+            setSelectedItem(item);
+            setSelectedGroupOptions({});
+            return;
+        }
+        // Fallback to old options format
         if (item.options && item.options.length > 0) {
             setSelectedItem(item);
             setSelectedOptions([]);
@@ -175,11 +196,30 @@ function MenuPage() {
     };
 
     const handleConfirmOptions = () => {
-        if (selectedItem) {
-            addItemToCart(selectedItem, selectedOptions);
+        if (!selectedItem) return;
+
+        // Handle option groups
+        if (selectedItem.optionGroups && selectedItem.optionGroups.length > 0) {
+            // Validate required groups
+            for (const group of selectedItem.optionGroups) {
+                if (group.required && (!selectedGroupOptions[group.id] || selectedGroupOptions[group.id].length === 0)) {
+                    alert(`請選擇 ${group.name}`);
+                    return;
+                }
+            }
+
+            // Flatten all selected options from all groups
+            const allOptions = Object.values(selectedGroupOptions).flat();
+            addItemToCart(selectedItem, allOptions);
             setSelectedItem(null);
-            setSelectedOptions([]);
+            setSelectedGroupOptions({});
+            return;
         }
+
+        // Fallback to old options
+        addItemToCart(selectedItem, selectedOptions);
+        setSelectedItem(null);
+        setSelectedOptions([]);
     };
 
     const toggleOption = (option: MenuOption) => {
@@ -189,6 +229,24 @@ function MenuPage() {
                 return prev.filter(o => o.name !== option.name);
             }
             return [...prev, option];
+        });
+    };
+
+    const toggleGroupOption = (groupId: string, option: MenuOption, groupType: 'radio' | 'checkbox') => {
+        setSelectedGroupOptions(prev => {
+            const currentSelections = prev[groupId] || [];
+
+            if (groupType === 'radio') {
+                // Replace with new selection
+                return { ...prev, [groupId]: [option] };
+            } else {
+                // Toggle for checkbox
+                const exists = currentSelections.find(o => o.name === option.name);
+                if (exists) {
+                    return { ...prev, [groupId]: currentSelections.filter(o => o.name !== option.name) };
+                }
+                return { ...prev, [groupId]: [...currentSelections, option] };
+            }
         });
     };
 
@@ -306,6 +364,20 @@ function MenuPage() {
 
     return (
         <div className={styles.container}>
+            {showAnnouncement && announcement && (
+                <div className={styles.announcementBanner}>
+                    <Megaphone size={20} style={{ marginRight: '8px' }} />
+                    <div className={styles.announcementContent}>
+                        {announcement.content}
+                    </div>
+                    <button
+                        className={styles.closeAnnouncement}
+                        onClick={() => setShowAnnouncement(false)}
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+            )}
             <header className={styles.header}>
                 <div className={styles.brand}>
                     <h1 className={styles.title}>新易現炒</h1>
@@ -394,36 +466,81 @@ function MenuPage() {
                     if (e.target === e.currentTarget) {
                         setSelectedItem(null);
                         setSelectedOptions([]);
+                        setSelectedGroupOptions({});
                     }
                 }}>
                     <div className={styles.modal}>
                         <h3>{selectedItem.name} - 客製化選項</h3>
-                        <div className={styles.optionsList}>
-                            {selectedItem.options?.map((option, idx) => {
-                                const isSelected = selectedOptions.some(o => o.name === option.name);
-                                return (
-                                    <div
-                                        key={idx}
-                                        className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
-                                        onClick={() => toggleOption(option)}
-                                    >
-                                        <div className={styles.checkbox}>
-                                            {isSelected && <Check size={16} color="white" />}
-                                        </div>
-                                        <span className={styles.optionName}>{option.name}</span>
-                                        <span className={styles.optionPrice}>
-                                            {option.price > 0 ? `+$${option.price}` : '免費'}
-                                        </span>
+
+                        {/* New Option Groups UI */}
+                        {selectedItem.optionGroups && selectedItem.optionGroups.length > 0 ? (
+                            <div className={styles.optionsList}>
+                                {selectedItem.optionGroups.map((group, groupIdx) => (
+                                    <div key={group.id} style={{ marginBottom: '1.5rem' }}>
+                                        <h4 style={{
+                                            fontSize: '1rem',
+                                            color: '#2d3436',
+                                            marginBottom: '0.75rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem'
+                                        }}>
+                                            {group.name}
+                                            {group.required && <span style={{ color: '#e74c3c', fontSize: '0.85rem' }}>(必選)</span>}
+                                            <span style={{ color: '#95a5a6', fontSize: '0.85rem' }}>({group.type === 'radio' ? '單選' : '多選'})</span>
+                                        </h4>
+                                        {group.options.map((option, optIdx) => {
+                                            const isSelected = (selectedGroupOptions[group.id] || []).some(o => o.name === option.name);
+                                            return (
+                                                <div
+                                                    key={optIdx}
+                                                    className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                                                    onClick={() => toggleGroupOption(group.id, option, group.type)}
+                                                >
+                                                    <div className={styles.checkbox}>
+                                                        {isSelected && <Check size={16} color="white" />}
+                                                    </div>
+                                                    <span className={styles.optionName}>{option.name}</span>
+                                                    <span className={styles.optionPrice}>
+                                                        {option.price > 0 ? `+$${option.price}` : '免費'}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                );
-                            })}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            /* Fallback to old options UI */
+                            <div className={styles.optionsList}>
+                                {selectedItem.options?.map((option, idx) => {
+                                    const isSelected = selectedOptions.some(o => o.name === option.name);
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                                            onClick={() => toggleOption(option)}
+                                        >
+                                            <div className={styles.checkbox}>
+                                                {isSelected && <Check size={16} color="white" />}
+                                            </div>
+                                            <span className={styles.optionName}>{option.name}</span>
+                                            <span className={styles.optionPrice}>
+                                                {option.price > 0 ? `+$${option.price}` : '免費'}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
                         <div className={styles.modalActions}>
                             <button
                                 className={styles.cancelBtn}
                                 onClick={() => {
                                     setSelectedItem(null);
                                     setSelectedOptions([]);
+                                    setSelectedGroupOptions({});
                                 }}
                             >
                                 取消
@@ -432,7 +549,13 @@ function MenuPage() {
                                 className={styles.confirmBtn}
                                 onClick={handleConfirmOptions}
                             >
-                                確認加入 (${selectedItem.price + selectedOptions.reduce((sum, opt) => sum + opt.price, 0)})
+                                確認加入 (${
+                                    selectedItem.price +
+                                    (selectedItem.optionGroups
+                                        ? Object.values(selectedGroupOptions).flat().reduce((sum, opt) => sum + opt.price, 0)
+                                        : selectedOptions.reduce((sum, opt) => sum + opt.price, 0)
+                                    )
+                                })
                             </button>
                         </div>
                     </div>
