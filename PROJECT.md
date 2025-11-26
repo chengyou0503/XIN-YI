@@ -294,7 +294,28 @@ vercel alias set <deployment-url> xin-yi-pos.vercel.app
   - **圖片上傳**：
     - 新增「請點擊儲存」的防呆提示
     - **核心修復**：重構儲存邏輯，改為單一項目更新 (`saveMenuItem`)，徹底解決資料覆蓋導致圖片遺失的問題
-  - **分類管理 UI 改善**:重構為模態框介面,提供更直觀的分類新增/刪除體驗
+  - **分類管理 UI 改善**: 重構為模態框介面,提供更直觀的分類新增/刪除體驗
+- ✅ **訂單流程優化 (2025-11-26 09:25)**:
+  - **訂單確認 UI**: 改善成功訊息,顯示完整訂單詳情（桌號、餐點清單、總金額）
+  - **Firebase 配置強化**: 加入環境變數清理函數,移除所有換行符號和空白字符,修復圖片上傳 CORS 錯誤
+
+### ⚠️ 待解決 - Firebase 權限配置
+**問題**: Firestore Security Rules 過於嚴格,導致所有讀寫操作失敗
+**錯誤訊息**: `FirebaseError: Missing or insufficient permissions`
+**影響範圍**: 
+- 無法儲存菜單和分類
+- 無法上傳圖片後保存到 Firestore
+- 無法創建訂單
+
+**解決步驟**:
+1. 前往 [Firebase Console](https://console.firebase.google.com/)
+2. 選擇專案 `xiyi-c4266`
+3. 左側選單：Firestore Database → Rules
+4. 複製 `FIRESTORE_SECURITY_RULES.txt` 的內容並發佈
+5. 左側選單：Storage → Rules  
+6. 複製 `STORAGE_SECURITY_RULES.txt` 的內容並發佈
+
+**注意**: 圖片上傳到 Storage 已成功,只是無法保存 URL 到 Firestore
 
 ### 🔄 進行中
 - [ ] 整合 LINE LIFF 真實登入 (已在代碼中，待驗證)
