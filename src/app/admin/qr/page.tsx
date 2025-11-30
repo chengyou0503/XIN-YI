@@ -30,9 +30,6 @@ export default function QrPage() {
                 </button>
                 <h1 className={styles.title}>桌號 QR Code 產生器</h1>
                 <div className={styles.controls}>
-                    <div className={styles.controlLabel} style={{ marginRight: '1rem', fontWeight: 'bold', color: '#2d3436' }}>
-                        固定桌號: 1, 2, 3, 5, 6, 7, 8, 10, 12
-                    </div>
                     <button onClick={handlePrint} className={styles.printBtn}>
                         <Printer size={20} />
                         列印 QR Codes
