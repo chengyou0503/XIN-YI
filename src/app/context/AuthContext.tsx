@@ -78,17 +78,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } catch (error) {
                 console.error(`LIFF initialization failed (Attempt ${retryCount + 1})`, error);
 
-                // Retry logic: try up to 3 times with 1s delay
-                if (retryCount < 2) {
-                    console.log(`Retrying LIFF init in 1 second...`);
-                    setTimeout(() => initLiff(retryCount + 1), 1000);
+                // Retry logic: try only once with 500ms delay (reduced from 3 times with 1s)
+                if (retryCount < 1) {
+                    console.log(`Retrying LIFF init in 500ms...`);
+                    setTimeout(() => initLiff(retryCount + 1), 500);
                     return; // Don't set error yet
                 }
 
                 setLiffError(error instanceof Error ? error.message : 'Unknown error');
             } finally {
                 // Only set loading to false if we are not retrying
-                if (retryCount >= 2 || !liffError) {
+                if (retryCount >= 1 || !liffError) {
                     setIsLoading(false);
                 }
             }
