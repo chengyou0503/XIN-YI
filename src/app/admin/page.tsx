@@ -1188,51 +1188,51 @@ export default function AdminPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
                                 {/* 訂單資訊設定 (內用/外帶) */}
                                 <div style={{
-                                    marginBottom: '1rem',
-                                    padding: '1rem',
-                                    background: 'white',
-                                    borderRadius: '8px',
+                                    marginBottom: '0.75rem',
+                                    padding: '0.6rem 0.8rem',
+                                    background: '#f8f9fa',
+                                    borderRadius: '6px',
                                     border: '1px solid #e9ecef',
                                     flexShrink: 0
                                 }}>
-                                    <div style={{ display: 'flex', gap: '1.5rem', marginBottom: editingOrder.tableId !== '外帶' ? '1rem' : '0' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '1.1rem' }}>
+                                    <div style={{ display: 'flex', gap: '1rem', marginBottom: editingOrder.tableId !== '外帶' ? '0.5rem' : '0' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.95rem' }}>
                                             <input
                                                 type="radio"
                                                 name="orderType"
                                                 checked={editingOrder.tableId !== '外帶'}
                                                 onChange={() => setEditingOrder({ ...editingOrder, tableId: '' })}
-                                                style={{ width: '20px', height: '20px', accentColor: '#2d3436' }}
+                                                style={{ width: '16px', height: '16px', accentColor: '#2d3436' }}
                                             />
-                                            <span style={{ fontWeight: 'bold', color: editingOrder.tableId !== '外帶' ? '#2d3436' : '#636e72' }}>內用</span>
+                                            <span style={{ fontWeight: '600', color: editingOrder.tableId !== '外帶' ? '#2d3436' : '#636e72' }}>內用</span>
                                         </label>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '1.1rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.95rem' }}>
                                             <input
                                                 type="radio"
                                                 name="orderType"
                                                 checked={editingOrder.tableId === '外帶'}
                                                 onChange={() => setEditingOrder({ ...editingOrder, tableId: '外帶' })}
-                                                style={{ width: '20px', height: '20px', accentColor: '#2d3436' }}
+                                                style={{ width: '16px', height: '16px', accentColor: '#2d3436' }}
                                             />
-                                            <span style={{ fontWeight: 'bold', color: editingOrder.tableId === '外帶' ? '#2d3436' : '#636e72' }}>外帶</span>
+                                            <span style={{ fontWeight: '600', color: editingOrder.tableId === '外帶' ? '#2d3436' : '#636e72' }}>外帶</span>
                                         </label>
                                     </div>
 
                                     {editingOrder.tableId !== '外帶' && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <span style={{ fontWeight: 'bold', color: '#2d3436' }}>桌號：</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            <span style={{ fontWeight: '600', color: '#636e72', fontSize: '0.9rem' }}>桌號：</span>
                                             <input
                                                 type="text"
                                                 value={editingOrder.tableId}
                                                 onChange={(e) => setEditingOrder({ ...editingOrder, tableId: e.target.value })}
                                                 placeholder="請輸入桌號"
                                                 style={{
-                                                    padding: '0.5rem',
-                                                    borderRadius: '6px',
+                                                    padding: '0.4rem 0.5rem',
+                                                    borderRadius: '4px',
                                                     border: '1px solid #dfe6e9',
-                                                    fontSize: '1rem',
-                                                    width: '120px',
-                                                    fontWeight: '600'
+                                                    fontSize: '0.9rem',
+                                                    width: '100px',
+                                                    fontWeight: '500'
                                                 }}
                                             />
                                         </div>
