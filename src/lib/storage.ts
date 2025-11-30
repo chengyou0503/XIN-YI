@@ -5,6 +5,7 @@ import {
     collection,
     doc,
     getDocs,
+    getDocsFromServer,
     getDoc,
     setDoc,
     updateDoc,
@@ -110,18 +111,7 @@ export class StorageService {
 
     static async saveMenuItem(item: MenuItem) {
         try {
-            console.log('\n========== 🔥 Firestore 儲存單一餐點 ==========');
-            console.log('📝 餐點資料:', {
-                id: item.id,
-                name: item.name,
-                imageUrl: item.imageUrl,
-                price: item.price,
-                category: item.category
-            });
-
             await setDoc(doc(db, COLLECTIONS.MENU, item.id), item, { merge: true });
-            console.log('✅ 餐點已成功更新至 Firestore');
-            console.log('========== ✅ 單一餐點儲存完成 ==========\n');
         } catch (error) {
             console.error('❌ Firestore 儲存單一餐點失敗:', error);
             throw error;
@@ -130,29 +120,17 @@ export class StorageService {
 
     static subscribeToMenu(callback: MenuCallback) {
         const q = query(collection(db, COLLECTIONS.MENU));
+
+        // 強制從伺服器拉取一次以更新快取
+        getDocsFromServer(q).catch(err => {
+            console.error('⚠️ 強制同步失敗:', err);
+        });
+
         this.menuUnsubscribe = onSnapshot(q, (snapshot) => {
-            console.log('\n========== 🔔 Firestore 菜單即時更新 ==========');
-            console.log('📊 從 Firestore 收到的餐點數:', snapshot.docs.length);
-
-            const menu = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    ...data,
-                    id: doc.id
-                } as MenuItem;
-            });
-
-            // 記錄前 5 個餐點的圖片 URL（用於驗證）
-            menu.slice(0, 5).forEach((item, index) => {
-                console.log(`📝 餐點 ${index + 1}: ${item.name}, 圖片: ${item.imageUrl}`);
-            });
-            if (menu.length > 5) {
-                console.log(`... 還有 ${menu.length - 5} 個餐點`);
-            }
-
-            console.log('✅ 菜單資料已傳遞給回調函數');
-            console.log('========== ✅ 即時更新完成 ==========\n');
-
+            const menu = snapshot.docs.map(doc => ({
+                ...doc.data(),
+                id: doc.id
+            } as MenuItem));
             callback(menu);
         });
         return this.menuUnsubscribe;
@@ -207,12 +185,18 @@ export class StorageService {
         console.log('🔢 桌號:', tableId);
         console.log('📦 品項數量:', items.length);
 
+        // Calculate total amount including customization options
+        const totalAmount = items.reduce((sum, item) => {
+            const optionsPrice = item.selectedOptions?.reduce((optSum, opt) => optSum + opt.price, 0) || 0;
+            return sum + (item.price + optionsPrice) * item.quantity;
+        }, 0);
+
         const newOrder: Order = {
             id: Date.now().toString(),
             tableId,
             items,
             status: 'pending',
-            totalAmount: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+            totalAmount,
             createdAt: new Date(),
         };
 
@@ -220,6 +204,16 @@ export class StorageService {
         console.log('💰 總金額:', newOrder.totalAmount);
         console.log('📋 訂單狀態:', newOrder.status);
         console.log('🕐 建立時間:', newOrder.createdAt);
+        console.log('📋 訂單品項明細:');
+        items.forEach((item, index) => {
+            const optionsPrice = item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0;
+            const itemTotal = (item.price + optionsPrice) * item.quantity;
+            console.log(`  ${index + 1}. ${item.name} x${item.quantity}`);
+            if (item.selectedOptions && item.selectedOptions.length > 0) {
+                console.log(`     客製化: ${item.selectedOptions.map(o => `${o.name} (+$${o.price})`).join(', ')}`);
+            }
+            console.log(`     小計: $${itemTotal}`);
+        });
 
         await this.saveOrder(newOrder);
         console.log('✅ 訂單已儲存至 Firestore');

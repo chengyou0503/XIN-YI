@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/lib/mockData';
 import { MenuItem, CartItem, Category, MenuOption, CategoryItem, Order, Announcement } from '@/types';
@@ -45,6 +46,7 @@ function MenuPage() {
     // 公告狀態
     const [announcement, setAnnouncement] = useState<Announcement | null>(null);
     const [showAnnouncement, setShowAnnouncement] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false); // 訂單送出中狀態
 
     // 輔助函數：計算購物車中該商品的數量
     const getItemQuantityInCart = (itemId: string): number => {
@@ -54,29 +56,18 @@ function MenuPage() {
     };
 
     useEffect(() => {
-        // 在背景載入 Firestore 菜單資料
-        const loadMenu = async () => {
-            try {
-                console.log('📋 開始從 Firestore 載入菜單...');
-                const items = await StorageService.getMenu();
-                console.log('📋 Firestore 菜單載入完成，項目數量:', items.length);
+        // 訂閱菜單即時更新
+        console.log('📋 訂閱 Firestore 菜單即時更新...');
+        const unsubscribeMenu = StorageService.subscribeToMenu((items) => {
+            console.log('📋 收到菜單更新，項目數量:', items.length);
 
-                // 只有在有資料時才更新，避免權限錯誤時覆蓋本地資料
-                if (items && items.length > 0) {
-                    setMenuItems(items);
-                    console.log('✅ 已更新為 Firestore 菜單');
-                } else {
-                    console.log('⚠️ Firestore 菜單為空或無權限，保留本地預設資料');
-                    // 保留 MENU_DATA 作為 fallback
-                }
-            } catch (err) {
-                console.error('❌ 載入 Firestore 菜單失敗，保留本地預設資料:', err);
-                // 不做任何事，保留 MENU_DATA
+            if (items && items.length > 0) {
+                setMenuItems(items);
+                console.log('✅ 已更新為 Firestore 菜單（即時訂閱）');
+            } else {
+                console.log('⚠️ Firestore 菜單為空，保留本地預設資料');
             }
-        };
-
-        // 延遲載入，避免阻塞 UI
-        setTimeout(loadMenu, 100);
+        });
 
         // 訂閱分類更新
         const unsubscribeCategories = StorageService.subscribeToCategories((categoryItems) => {
@@ -91,6 +82,7 @@ function MenuPage() {
         });
 
         return () => {
+            unsubscribeMenu();
             unsubscribeCategories();
         };
     }, [activeCategory]);
@@ -139,7 +131,46 @@ function MenuPage() {
         }
     }, [user, isFriend]);
 
-    const filteredItems = menuItems.filter(item => item.category === activeCategory);
+    // Group items by category
+    const itemsByCategory = categories.reduce((acc, category) => {
+        acc[category] = menuItems.filter(item => item.category === category);
+        return acc;
+    }, {} as Record<string, MenuItem[]>);
+
+    // Scroll Spy Logic
+    useEffect(() => {
+        const handleScroll = () => {
+            const sections = categories.map(cat => document.getElementById(`category-${cat}`));
+            const scrollPosition = window.scrollY + 100; // Offset for header
+
+            for (let i = sections.length - 1; i >= 0; i--) {
+                const section = sections[i];
+                if (section && section.offsetTop <= scrollPosition) {
+                    setActiveCategory(categories[i]);
+                    break;
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [categories]);
+
+    const handleCategoryClick = (category: string) => {
+        setActiveCategory(category);
+        const element = document.getElementById(`category-${category}`);
+        if (element) {
+            // Smooth scroll with offset adjustment
+            const headerOffset = 80; // Adjust based on header + nav height
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            });
+        }
+    };
 
     const handleOpenOfficialAccount = () => {
         // 使用 LIFF 原生 API 開啟 LINE 加好友頁面
@@ -222,6 +253,11 @@ function MenuPage() {
             return;
         }
 
+        // Check if already submitting
+        if (isSubmitting) {
+            return; // 防止重複點擊
+        }
+
         // Check if user is friend
         if (!isFriend) {
             // Allow submission but show warning (or just log it for now to unblock user)
@@ -230,6 +266,8 @@ function MenuPage() {
                 return;
             }
         }
+
+        setIsSubmitting(true); // 開始送出
 
         console.log('\n========== 📝 開始送出訂單 ==========');
         console.log('🔢 桌號:', tableId);
@@ -299,6 +337,8 @@ function MenuPage() {
             console.error('❌ 訂單送出失敗:', error);
             alert('訂單送出失敗，請重試或聯絡服務人員');
             setShowOrderConfirm(false);
+        } finally {
+            setIsSubmitting(false); // 結束送出狀態
         }
     };
 
@@ -330,366 +370,446 @@ function MenuPage() {
                     </div>
                 </div>
             )}
+            {/* Header */}
             <header className={styles.header}>
                 <div className={styles.brand}>
                     <h1 className={styles.title}>新易現炒</h1>
-                    {tableId && (
-                        <span className={styles.tableBadge}>
-                            桌號 {tableId}
+                    {tableId && <span className={styles.tableBadge}>桌號 {tableId}</span>}
+                </div>
+                <button
+                    className={styles.cartButton}
+                    onClick={() => setIsCartOpen(true)}
+                >
+                    <ShoppingCart size={24} />
+                    {cart.length > 0 && (
+                        <span className={styles.badge}>
+                            {cart.reduce((sum, item) => sum + item.quantity, 0)}
                         </span>
                     )}
-                </div>
-                <button className={styles.cartButton} onClick={() => setIsCartOpen(!isCartOpen)}>
-                    <ShoppingCart size={20} />
-                    {totalItems > 0 && <span className={styles.badge}>{totalItems}</span>}
                 </button>
             </header>
 
+            {/* Category Navigation */}
             <nav className={styles.categoryNav}>
-                {categories.map(cat => (
+                {categories.map(category => (
                     <button
-                        key={cat}
-                        className={`${styles.categoryBtn} ${activeCategory === cat ? styles.active : ''}`}
-                        onClick={() => setActiveCategory(cat as Category)}
+                        key={category}
+                        className={`${styles.categoryBtn} ${activeCategory === category ? styles.active : ''}`}
+                        onClick={() => handleCategoryClick(category)}
                     >
-                        {cat}
+                        {category}
                     </button>
                 ))}
             </nav>
 
-            <div className={`${styles.menuGrid} animate-fade-in`}>
-                {filteredItems.map((item, index) => (
-                    <div
-                        key={item.id}
-                        className={styles.menuItem}
-                        style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                        <div className={styles.imageWrapper}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={item.imageUrl} alt={item.name} className={styles.itemImage} />
-                            {!item.available && <div className={styles.soldOutOverlay}>已售完</div>}
-                        </div>
-                        <div className={styles.itemContent}>
-                            <div className={styles.itemHeader}>
-                                <h3 className={styles.itemName}>{item.name}</h3>
-                                <span className={styles.itemPrice}>${item.price}</span>
-                            </div>
-                            <p className={styles.itemDesc}>{item.description}</p>
+            {/* Menu Grid - Grouped by Category */}
+            <div className={styles.menuContainer}>
+                {categories.map(category => {
+                    const items = itemsByCategory[category] || [];
+                    if (items.length === 0) return null;
 
-                            {/* 數量調整按鈕 */}
-                            {getItemQuantityInCart(item.id) > 0 ? (
-                                <div className={styles.quantityControl}>
-                                    <button
-                                        className={styles.quantityBtn}
-                                        onClick={() => removeFromCart(item.id)}
-                                    >
-                                        <Minus size={18} />
-                                    </button>
-                                    <span className={styles.quantityDisplay}>
-                                        {getItemQuantityInCart(item.id)}
-                                    </span>
-                                    <button
-                                        className={styles.quantityBtn}
-                                        onClick={() => addToCart(item)}
-                                    >
-                                        <Plus size={18} />
-                                    </button>
-                                </div>
-                            ) : (
-                                <button
-                                    className={styles.addBtn}
-                                    onClick={() => addToCart(item)}
-                                    disabled={!item.available}
-                                >
-                                    <Plus size={20} />
-                                    加入
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
+                    return (
+                        <section
+                            key={category}
+                            id={`category-${category}`}
+                            className={styles.categorySection}
+                        >
+                            <h2 className={styles.categoryTitle}>{category}</h2>
+                            <div className={styles.menuGrid}>
+                                {items.map((item) => (
+                                    <div key={item.id} className={styles.menuItem}>
+                                        <div className={styles.imageWrapper} onClick={() => setSelectedItem(item)}>
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            {item.imageUrl && item.imageUrl !== '/placeholder.jpg' ? (
+                                                <img
+                                                    src={item.imageUrl}
+                                                    alt={item.name}
+                                                    className={styles.itemImage}
+                                                />
+                                            ) : (
+                                                <div className={styles.itemImage} style={{ backgroundColor: '#f8f9fa' }} />
+                                            )}
+                                            {!item.available && <div className={styles.soldOutOverlay}>已售完</div>}
+                                        </div>
+
+                                        <div className={styles.itemContent}>
+                                            <div className={styles.itemHeader}>
+                                                <h3 className={styles.itemName}>{item.name}</h3>
+                                                <span className={styles.itemPrice}>${item.price}</span>
+                                            </div>
+
+                                            {item.description && (
+                                                <p className={styles.itemDesc}>{item.description}</p>
+                                            )}
+
+                                            {/* 數量調整按鈕 */}
+                                            {getItemQuantityInCart(item.id) > 0 ? (
+                                                <div className={styles.quantityControl}>
+                                                    <button
+                                                        className={styles.quantityBtn}
+                                                        onClick={() => removeFromCart(item.id)}
+                                                    >
+                                                        <Minus size={18} />
+                                                    </button>
+                                                    <span className={styles.quantityDisplay}>
+                                                        {getItemQuantityInCart(item.id)}
+                                                    </span>
+                                                    <button
+                                                        className={styles.quantityBtn}
+                                                        onClick={() => addToCart(item)}
+                                                    >
+                                                        <Plus size={18} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    className={styles.addBtn}
+                                                    disabled={!item.available}
+                                                    onClick={() => setSelectedItem(item)}
+                                                >
+                                                    <Plus size={20} />
+                                                    加入
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                })}
             </div>
 
             {/* Options Modal */}
-            {selectedItem && (
-                <OptionsModal
-                    item={selectedItem}
-                    onClose={() => setSelectedItem(null)}
-                    onConfirm={handleConfirmAddWithOptions}
-                />
-            )}
+            {
+                selectedItem && (
+                    <OptionsModal
+                        item={selectedItem}
+                        onClose={() => setSelectedItem(null)}
+                        onConfirm={handleConfirmAddWithOptions}
+                    />
+                )
+            }
 
             {/* ... (keep rest of UI) */}
             {/* Floating Action Button for Cart (Mobile Friendly) */}
-            {totalItems > 0 && !isCartOpen && (
-                <div className={styles.fabContainer}>
-                    <button className={styles.fabButton} onClick={() => setIsCartOpen(true)}>
-                        <span>購物車 ({totalItems})</span>
-                        <span>${totalAmount}</span>
-                    </button>
-                </div>
-            )}
-
-            {isCartOpen && (
-                <div className={styles.cartOverlay} onClick={(e) => {
-                    if (e.target === e.currentTarget) setIsCartOpen(false);
-                }}>
-                    <div className={styles.cartContent}>
-                        <div className={styles.cartHeader}>
-                            <h2>購物車</h2>
-                            <button onClick={() => setIsCartOpen(false)} className={styles.closeBtn}>
-                                <X size={24} />
-                            </button>
-                        </div>
-                        {cart.length === 0 ? (
-                            <p className={styles.emptyCart}>購物車是空的</p>
-                        ) : (
-                            <div className={styles.cartList}>
-                                {cart.map(item => (
-                                    <div key={item.id} className={styles.cartItem}>
-                                        <div className={styles.cartItemInfo}>
-                                            <h4>{item.name}</h4>
-                                            {item.selectedOptions && item.selectedOptions.length > 0 && (
-                                                <small className={styles.cartItemOptions}>
-                                                    {item.selectedOptions.map(o => o.name).join(', ')}
-                                                </small>
-                                            )}
-                                            <span>${item.price + (item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0)}</span>
-                                        </div>
-                                        <div className={styles.quantityControls}>
-                                            <button onClick={() => removeFromCart(item.id)}><Minus size={16} /></button>
-                                            <span>{item.quantity}</span>
-                                            <button onClick={() => addToCart(item)}><Plus size={16} /></button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        <div className={styles.cartFooter}>
-                            <div className={styles.total}>
-                                <span>總計</span>
-                                <span>${totalAmount}</span>
-                            </div>
-                            {!user ? (
-                                <button className={styles.checkoutBtn} onClick={login}>
-                                    請先登入 LINE 以點餐
-                                </button>
-                            ) : (
-                                <button
-                                    className={styles.checkoutBtn}
-                                    disabled={cart.length === 0}
-                                    onClick={requestCheckout}
-                                >
-                                    送出訂單
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {isSuccess && completedOrder && (
-                <div className={styles.successOverlay}>
-                    <div className={styles.successCard}>
-                        <div className={styles.successIcon}>
-                            <Utensils size={48} />
-                        </div>
-                        <h2 style={{ color: '#2d3436', marginBottom: '0.5rem' }}>訂單已送出！</h2>
-
-                        <div style={{
-                            background: '#f8f9fa',
-                            padding: '1.5rem',
-                            borderRadius: '12px',
-                            margin: '1.5rem 0',
-                            textAlign: 'left'
-                        }}>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <span style={{ color: '#636e72', fontSize: '0.9rem' }}>桌號</span>
-                                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ff7675', margin: '0.25rem 0' }}>
-                                    {completedOrder.tableId}
-                                </p>
-                            </div>
-
-                            <div style={{ borderTop: '1px solid #dfe6e9', paddingTop: '1rem', marginTop: '1rem' }}>
-                                <span style={{ color: '#636e72', fontSize: '0.9rem', fontWeight: '600' }}>訂單內容</span>
-                                {completedOrder.items.map((item, idx) => (
-                                    <div key={idx} style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        padding: '0.5rem 0',
-                                        color: '#2d3436'
-                                    }}>
-                                        <span>
-                                            <strong style={{ color: '#ff7675' }}>{item.quantity}x</strong> {item.name}
-                                        </span>
-                                        <span style={{ fontWeight: '600' }}>${item.price * item.quantity}</span>
-                                    </div>
-                                ))}
-                                <div style={{
-                                    borderTop: '2px solid #2d3436',
-                                    marginTop: '0.75rem',
-                                    paddingTop: '0.75rem',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    fontSize: '1.2rem',
-                                    fontWeight: 'bold',
-                                    color: '#2d3436'
-                                }}>
-                                    <span>總計</span>
-                                    <span>${completedOrder.totalAmount}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{
-                            background: '#fff3cd',
-                            padding: '1rem',
-                            borderRadius: '8px',
-                            marginBottom: '1.5rem',
-                            border: '1px solid #ffc107'
-                        }}>
-                            <p style={{ color: '#856404', fontWeight: '600', margin: 0, fontSize: '1.05rem' }}>
-                                💰 請至櫃檯結帳後開始製作
-                            </p>
-                        </div>
-
-                        <button
-                            className={styles.successBtn}
-                            onClick={() => {
-                                setIsSuccess(false);
-                                setCompletedOrder(null);
-                            }}
-                        >
-                            知道了
+            {
+                totalItems > 0 && !isCartOpen && (
+                    <div className={styles.fabContainer}>
+                        <button className={styles.fabButton} onClick={() => setIsCartOpen(true)}>
+                            <span>購物車 ({totalItems})</span>
+                            <span>${totalAmount}</span>
                         </button>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {showOrderConfirm && (
-                <div className={styles.modalOverlay} style={{ zIndex: 10000 }}>
-                    <div className={styles.modal} style={{ maxWidth: '500px' }}>
-                        <h2 style={{ fontSize: '1.5rem', color: '#2d3436', marginBottom: '1.5rem', textAlign: 'center' }}>
-                            確認送出訂單？
-                        </h2>
+            {
+                isCartOpen && (
+                    <div className={styles.cartOverlay} onClick={(e) => {
+                        if (e.target === e.currentTarget) setIsCartOpen(false);
+                    }}>
+                        <div className={styles.cartContent}>
+                            <div className={styles.cartHeader}>
+                                <h2>購物車</h2>
+                                <button onClick={() => setIsCartOpen(false)} className={styles.closeBtn}>
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            {cart.length === 0 ? (
+                                <p className={styles.emptyCart}>購物車是空的</p>
+                            ) : (
+                                <div className={styles.cartList}>
+                                    {cart.map(item => (
+                                        <div key={item.id} className={styles.cartItem}>
+                                            <div className={styles.cartItemInfo}>
+                                                <h4>{item.name}</h4>
+                                                {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                    <small className={styles.cartItemOptions}>
+                                                        {item.selectedOptions.map(o => o.name).join(', ')}
+                                                    </small>
+                                                )}
+                                                <span>${item.price + (item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0)}</span>
+                                            </div>
+                                            <div className={styles.quantityControls}>
+                                                <button onClick={() => removeFromCart(item.id)}><Minus size={16} /></button>
+                                                <span>{item.quantity}</span>
+                                                <button onClick={() => addToCart(item)}><Plus size={16} /></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <div className={styles.cartFooter}>
+                                <div className={styles.total}>
+                                    <span>總計</span>
+                                    <span>${totalAmount}</span>
+                                </div>
+                                {isLoading ? (
+                                    <button className={styles.checkoutBtn} disabled>
+                                        載入中...
+                                    </button>
+                                ) : !user ? (
+                                    <button className={styles.checkoutBtn} onClick={login}>
+                                        請先登入 LINE 以點餐
+                                    </button>
+                                ) : (
+                                    <button
+                                        className={styles.checkoutBtn}
+                                        disabled={cart.length === 0}
+                                        onClick={requestCheckout}
+                                    >
+                                        送出訂單
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
 
-                        <div style={{
-                            background: '#f8f9fa',
-                            padding: '1.5rem',
-                            borderRadius: '16px',
-                            marginBottom: '1.5rem'
-                        }}>
-                            <div style={{ marginBottom: '1.2rem', paddingBottom: '1rem', borderBottom: '1px solid #dfe6e9' }}>
-                                <span style={{ color: '#636e72', fontSize: '0.9rem' }}>桌號</span>
-                                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ff7675', margin: '0.25rem 0' }}>
-                                    {tableId}
+            {
+                isSuccess && completedOrder && (
+                    <div className={styles.successOverlay}>
+                        <div className={styles.successCard}>
+                            <div className={styles.successIcon}>
+                                <Utensils size={48} />
+                            </div>
+                            <h2 style={{ color: '#2d3436', marginBottom: '0.5rem' }}>訂單已送出！</h2>
+
+                            <div style={{
+                                background: '#f8f9fa',
+                                padding: '1.5rem',
+                                borderRadius: '12px',
+                                margin: '1.5rem 0',
+                                textAlign: 'left'
+                            }}>
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <span style={{ color: '#636e72', fontSize: '0.9rem' }}>桌號</span>
+                                    <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ff7675', margin: '0.25rem 0' }}>
+                                        {completedOrder.tableId}
+                                    </p>
+                                </div>
+
+                                <div style={{ borderTop: '1px solid #dfe6e9', paddingTop: '1rem', marginTop: '1rem' }}>
+                                    <span style={{ color: '#636e72', fontSize: '0.9rem', fontWeight: '600' }}>訂單內容</span>
+                                    {completedOrder.items.map((item, idx) => {
+                                        const optionsPrice = item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0;
+                                        const itemTotal = (item.price + optionsPrice) * item.quantity;
+                                        return (
+                                            <div key={idx} style={{ marginTop: '0.75rem' }}>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    padding: '0.5rem 0',
+                                                    color: '#2d3436'
+                                                }}>
+                                                    <span>
+                                                        <strong style={{ color: '#ff7675' }}>{item.quantity}x</strong> {item.name}
+                                                    </span>
+                                                    <span style={{ fontWeight: '600' }}>${itemTotal}</span>
+                                                </div>
+                                                {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                    <div style={{ paddingLeft: '1.5rem', fontSize: '0.85rem', color: '#636e72' }}>
+                                                        {item.selectedOptions.map((opt, optIdx) => (
+                                                            <div key={optIdx} style={{ marginTop: '0.25rem' }}>
+                                                                • {opt.name} (+${opt.price})
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                    <div style={{
+                                        borderTop: '2px solid #2d3436',
+                                        marginTop: '0.75rem',
+                                        paddingTop: '0.75rem',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        fontSize: '1.2rem',
+                                        fontWeight: 'bold',
+                                        color: '#2d3436'
+                                    }}>
+                                        <span>總計</span>
+                                        <span>${completedOrder.totalAmount}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style={{
+                                background: '#fff3cd',
+                                padding: '1rem',
+                                borderRadius: '8px',
+                                marginBottom: '1.5rem',
+                                border: '1px solid #ffc107'
+                            }}>
+                                <p style={{ color: '#856404', fontWeight: '600', margin: 0, fontSize: '1.05rem' }}>
+                                    💰 請至櫃檯結帳後開始製作
                                 </p>
                             </div>
 
-                            <div style={{ marginBottom: '0.75rem' }}>
-                                <span style={{ color: '#636e72', fontSize: '0.9rem', fontWeight: '600', display: 'block', marginBottom: '0.75rem' }}>訂單內容</span>
-                                {cart.map((item, idx) => {
-                                    const optionsPrice = item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0;
-                                    const itemTotal = (item.price + optionsPrice) * item.quantity;
+                            <button
+                                className={styles.successBtn}
+                                onClick={() => {
+                                    setIsSuccess(false);
+                                    setCompletedOrder(null);
+                                }}
+                            >
+                                知道了
+                            </button>
+                        </div>
+                    </div>
+                )
+            }
 
-                                    return (
-                                        <div key={idx} style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            padding: '0.5rem 0',
-                                            color: '#2d3436'
-                                        }}>
-                                            <span>
-                                                <strong style={{ color: '#ff7675' }}>{item.quantity}x</strong> {item.name}
-                                                {item.selectedOptions && item.selectedOptions.length > 0 && (
-                                                    <span style={{ color: '#636e72', fontSize: '0.85rem', display: 'block', marginLeft: '2rem' }}>
-                                                        {item.selectedOptions.map(opt => opt.name).join(', ')}
-                                                    </span>
-                                                )}
-                                            </span>
-                                            <span style={{ fontWeight: '600' }}>${itemTotal}</span>
-                                        </div>
-                                    );
-                                })}
+            {
+                showOrderConfirm && (
+                    <div className={styles.modalOverlay} style={{ zIndex: 10000 }}>
+                        <div className={styles.modal} style={{ maxWidth: '500px' }}>
+                            <h2 style={{ fontSize: '1.5rem', color: '#2d3436', marginBottom: '1.5rem', textAlign: 'center' }}>
+                                確認送出訂單？
+                            </h2>
 
-                                <div style={{
-                                    borderTop: '2px solid #2d3436',
-                                    marginTop: '0.75rem',
-                                    paddingTop: '0.75rem',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    fontSize: '1.3rem',
-                                    fontWeight: 'bold',
-                                    color: '#2d3436'
-                                }}>
-                                    <span>總計</span>
-                                    <span style={{ color: '#ff7675' }}>${totalAmount}</span>
+                            <div style={{
+                                background: '#f8f9fa',
+                                padding: '1.5rem',
+                                borderRadius: '16px',
+                                marginBottom: '1.5rem'
+                            }}>
+                                <div style={{ marginBottom: '1.2rem', paddingBottom: '1rem', borderBottom: '1px solid #dfe6e9' }}>
+                                    <span style={{ color: '#636e72', fontSize: '0.9rem' }}>桌號</span>
+                                    <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ff7675', margin: '0.25rem 0' }}>
+                                        {tableId}
+                                    </p>
+                                </div>
+
+                                <div style={{ marginBottom: '0.75rem' }}>
+                                    <span style={{ color: '#636e72', fontSize: '0.9rem', fontWeight: '600', display: 'block', marginBottom: '0.75rem' }}>訂單內容</span>
+                                    {cart.map((item, idx) => {
+                                        const optionsPrice = item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0;
+                                        const itemTotal = (item.price + optionsPrice) * item.quantity;
+
+                                        return (
+                                            <div key={idx} style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                padding: '0.5rem 0',
+                                                color: '#2d3436'
+                                            }}>
+                                                <span>
+                                                    <strong style={{ color: '#ff7675' }}>{item.quantity}x</strong> {item.name}
+                                                    {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                        <span style={{ color: '#636e72', fontSize: '0.85rem', display: 'block', marginLeft: '2rem' }}>
+                                                            {item.selectedOptions.map(opt => opt.name).join(', ')}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                                <span style={{ fontWeight: '600' }}>${itemTotal}</span>
+                                            </div>
+                                        );
+                                    })}
+
+                                    <div style={{
+                                        borderTop: '2px solid #2d3436',
+                                        marginTop: '0.75rem',
+                                        paddingTop: '0.75rem',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        fontSize: '1.3rem',
+                                        fontWeight: 'bold',
+                                        color: '#2d3436'
+                                    }}>
+                                        <span>總計</span>
+                                        <span style={{ color: '#ff7675' }}>${totalAmount}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div style={{
-                            background: '#fff3cd',
-                            padding: '1rem',
-                            borderRadius: '12px',
-                            marginBottom: '1.5rem',
-                            border: '1px solid #ffc107'
-                        }}>
-                            <p style={{ color: '#856404', fontWeight: '600', margin: 0, fontSize: '0.95rem', textAlign: 'center' }}>
-                                ⚠️ 請確認訂單內容無誤後送出
+                            <div style={{
+                                background: '#fff3cd',
+                                padding: '1rem',
+                                borderRadius: '12px',
+                                marginBottom: '1.5rem',
+                                border: '1px solid #ffc107'
+                            }}>
+                                <p style={{ color: '#856404', fontWeight: '600', margin: 0, fontSize: '0.95rem', textAlign: 'center' }}>
+                                    ⚠️ 請確認訂單內容無誤後送出
+                                </p>
+                            </div>
+
+                            <div className={styles.modalActions}>
+                                <button
+                                    className={styles.cancelBtn}
+                                    onClick={() => setShowOrderConfirm(false)}
+                                    disabled={isSubmitting}
+                                    style={{ opacity: isSubmitting ? 0.5 : 1 }}
+                                >
+                                    取消
+                                </button>
+                                <button
+                                    className={styles.confirmBtn}
+                                    onClick={confirmCheckout}
+                                    disabled={isSubmitting}
+                                    style={{
+                                        background: isSubmitting ? '#95e1d3' : '#00b894',
+                                        color: 'white',
+                                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                                        position: 'relative'
+                                    }}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <span style={{ opacity: 0.7 }}>送出中</span>
+                                            <span style={{
+                                                marginLeft: '0.5rem',
+                                                animation: 'spin 1s linear infinite',
+                                                display: 'inline-block'
+                                            }}>⏳</span>
+                                        </>
+                                    ) : (
+                                        '確定送出'
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {
+                showFriendInvite && (
+                    <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
+                        <div className={styles.friendInviteCard}>
+                            <div className={styles.friendInviteIcon}>
+                                <div style={{ fontSize: '4rem' }}>🎁</div>
+                            </div>
+                            <h2 style={{ color: '#2d3436', marginBottom: '1rem' }}>歡迎光臨新易現炒！</h2>
+                            <p style={{ color: '#636e72', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                                請先<strong style={{ color: '#00b894' }}>加入我們的 LINE 官方帳號</strong>，<br />
+                                即可享受即時訂單通知與會員優惠！
                             </p>
-                        </div>
-
-                        <div className={styles.modalActions}>
-                            <button
-                                className={styles.cancelBtn}
-                                onClick={() => setShowOrderConfirm(false)}
-                            >
-                                取消
-                            </button>
-                            <button
-                                className={styles.confirmBtn}
-                                onClick={confirmCheckout}
-                                style={{ background: '#00b894', color: 'white' }}
-                            >
-                                確定送出
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showFriendInvite && (
-                <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
-                    <div className={styles.friendInviteCard}>
-                        <div className={styles.friendInviteIcon}>
-                            <div style={{ fontSize: '4rem' }}>🎁</div>
-                        </div>
-                        <h2 style={{ color: '#2d3436', marginBottom: '1rem' }}>歡迎光臨新易現炒！</h2>
-                        <p style={{ color: '#636e72', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-                            請先<strong style={{ color: '#00b894' }}>加入我們的 LINE 官方帳號</strong>，<br />
-                            即可享受即時訂單通知與會員優惠！
-                        </p>
-                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem' }}>
-                            <button
-                                className={styles.secondaryBtn}
-                                onClick={() => setShowFriendInvite(false)}
-                                style={{ flex: 1, padding: '0.875rem', fontSize: '1rem' }}
-                            >
-                                稍後再說
-                            </button>
-                            <button
-                                className={styles.confirmBtn}
-                                onClick={handleOpenOfficialAccount}
-                                style={{ flex: 2, padding: '0.875rem', fontSize: '1rem', fontWeight: 'bold' }}
-                            >
-                                立即加入好友 🎉
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem' }}>
+                                <button
+                                    className={styles.secondaryBtn}
+                                    onClick={() => setShowFriendInvite(false)}
+                                    style={{ flex: 1, padding: '0.875rem', fontSize: '1rem' }}
+                                >
+                                    稍後再說
+                                </button>
+                                <button
+                                    className={styles.confirmBtn}
+                                    onClick={handleOpenOfficialAccount}
+                                    style={{ flex: 2, padding: '0.875rem', fontSize: '1rem', fontWeight: 'bold' }}
+                                >
+                                    立即加入好友 🎉
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
 

@@ -5,8 +5,7 @@
 }
 
 .header {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 100;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
@@ -87,10 +86,16 @@
     padding: 1rem 1.5rem;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    background: transparent;
+    background: rgba(248, 249, 250, 0.95);
+    /* Add background */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     position: sticky;
-    top: 80px;
-    z-index: 90;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .categoryNav::-webkit-scrollbar {
@@ -99,23 +104,48 @@
 
 .categoryBtn {
     padding: 0.6rem 1.2rem;
-    border-radius: 24px;
+    border-radius: 25px;
     border: none;
     background-color: white;
-    color: #636e72;
-    font-weight: 600;
+    color: #2d3436;
+    font-weight: 700;
     font-size: 0.95rem;
     white-space: nowrap;
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     cursor: pointer;
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 .categoryBtn.active {
     background-color: #2d3436;
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(45, 52, 54, 0.3);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(45, 52, 54, 0.2);
+}
+
+/* New Styles for Scroll Layout */
+.menuContainer {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.categorySection {
+    scroll-margin-top: 80px;
+    /* Offset for sticky nav */
+}
+
+.categoryTitle {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #2d3436;
+    margin: 0 0 1rem 0;
+    padding-left: 0.5rem;
+    border-left: 4px solid #ff7675;
+    line-height: 1.2;
 }
 
 .menuGrid {
@@ -135,6 +165,7 @@
     flex-direction: column;
     transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid rgba(0, 0, 0, 0.02);
+    height: 100%;
 }
 
 .menuItem:hover {
@@ -222,35 +253,45 @@
 }
 
 .addBtn {
-    width: 100%;
-    padding: 0.8rem;
-    background-color: #f1f2f6;
-    color: #2d3436;
+    width: auto;
+    min-width: 100px;
+    padding: 0.5rem 1.5rem;
+    background-color: #00b894;
+    color: white;
     border: none;
-    border-radius: 12px;
+    border-radius: 25px;
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    white-space: nowrap;
     font-weight: 700;
     font-size: 0.95rem;
     transition: all 0.2s;
     cursor: pointer;
+    align-self: center;
+    margin-top: auto;
+    box-shadow: 0 4px 10px rgba(0, 184, 148, 0.2);
 }
 
 .addBtn:not(:disabled):hover {
-    background-color: #2d3436;
-    color: white;
+    background-color: #00a383;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 184, 148, 0.3);
 }
 
 .addBtn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    border-color: #b2bec3;
+    color: #b2bec3;
 }
 
 .addBtnActive {
     background-color: #00b894 !important;
     color: white !important;
+    border-color: #00b894 !important;
 }
 
 .addBtnActive:not(:disabled):hover {
@@ -263,10 +304,11 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    width: 100%;
-    padding: 0.5rem;
-    background-color: #f1f2f6;
-    border-radius: 12px;
+    width: auto;
+    padding: 0;
+    background-color: transparent;
+    align-self: center;
+    margin-top: auto;
 }
 
 .quantityBtn {

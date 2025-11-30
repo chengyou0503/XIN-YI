@@ -107,27 +107,47 @@ export async function POST(req: NextRequest) {
                             layout: 'vertical',
                             margin: 'md',
                             spacing: 'sm',
-                            contents: order.items.map((item: any) => ({
-                                type: 'box',
-                                layout: 'horizontal',
-                                contents: [
-                                    {
+                            contents: order.items.flatMap((item: any) => {
+                                const optionsPrice = item.selectedOptions?.reduce((sum: number, opt: any) => sum + opt.price, 0) || 0;
+                                const itemTotal = (item.price + optionsPrice) * item.quantity;
+
+                                const elements: any[] = [{
+                                    type: 'box',
+                                    layout: 'horizontal',
+                                    contents: [
+                                        {
+                                            type: 'text',
+                                            text: `${item.name} x${item.quantity}`,
+                                            size: 'sm',
+                                            color: '#555555',
+                                            flex: 2,
+                                            weight: 'bold'
+                                        },
+                                        {
+                                            type: 'text',
+                                            text: `$${itemTotal}`,
+                                            size: 'sm',
+                                            color: '#111111',
+                                            align: 'end',
+                                            flex: 1
+                                        }
+                                    ]
+                                }];
+
+                                // Add customization options if present
+                                if (item.selectedOptions && item.selectedOptions.length > 0) {
+                                    elements.push({
                                         type: 'text',
-                                        text: `${item.name} x${item.quantity}`,
-                                        size: 'sm',
-                                        color: '#555555',
-                                        flex: 2
-                                    },
-                                    {
-                                        type: 'text',
-                                        text: `$${item.price * item.quantity}`,
-                                        size: 'sm',
-                                        color: '#111111',
-                                        align: 'end',
-                                        flex: 1
-                                    }
-                                ]
-                            }))
+                                        text: item.selectedOptions.map((opt: any) => `  • ${opt.name} (+$${opt.price})`).join('\n'),
+                                        size: 'xs',
+                                        color: '#999999',
+                                        wrap: true,
+                                        margin: 'xs'
+                                    });
+                                }
+
+                                return elements;
+                            })
                         },
                         {
                             type: 'separator',

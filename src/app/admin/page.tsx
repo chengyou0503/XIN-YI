@@ -41,7 +41,8 @@ export default function AdminPage() {
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [editingOrderItems, setEditingOrderItems] = useState<Order['items']>([]);
     const [selectedItemForOptions, setSelectedItemForOptions] = useState<MenuItem | null>(null);
-
+    const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+    const [newOrderTableId, setNewOrderTableId] = useState('');
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
 
@@ -338,6 +339,23 @@ export default function AdminPage() {
     const startEditOrder = (order: Order) => {
         setEditingOrder(order);
         setEditingOrderItems([...order.items]);
+        setIsCreatingOrder(false);
+        setNewOrderTableId(order.tableId);
+    };
+
+    const handleCreateOrder = () => {
+        const newOrder: Order = {
+            id: `order-${Date.now()}`,
+            tableId: '',
+            items: [],
+            status: 'pending',
+            totalAmount: 0,
+            createdAt: new Date()
+        };
+        setEditingOrder(newOrder);
+        setEditingOrderItems([]);
+        setIsCreatingOrder(true);
+        setNewOrderTableId('');
     };
 
     const handleAddItemToEditingOrder = (item: MenuItem) => {
@@ -537,6 +555,15 @@ export default function AdminPage() {
                 <div className={styles.headerActions}>
                     <button
                         className={styles.qrBtn}
+                        onClick={handleCreateOrder}
+                        style={{ backgroundColor: '#2ecc71', marginRight: '0.5rem' }}
+                        title="建立新訂單"
+                    >
+                        <Plus size={20} />
+                        <span>新訂單</span>
+                    </button>
+                    <button
+                        className={styles.qrBtn}
                         onClick={() => router.push('/admin/qr')}
                         title="QR Code 產生器"
                     >
@@ -585,13 +612,7 @@ export default function AdminPage() {
                         <Megaphone size={18} /> 公告管理
                     </button>
                     {/* 分類管理已整合到菜單管理頁面 */}
-                    <button
-                        className={styles.navBtn}
-                        onClick={handleClearOrders}
-                        style={{ marginLeft: 'auto', color: '#ff7675', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    >
-                        <Trash2 size={18} /> 清除訂單
-                    </button>
+                    {/* 清除訂單按鈕已移除 */}
                 </nav>
             </header>
 
@@ -1038,7 +1059,19 @@ export default function AdminPage() {
                                             }}>
                                                 {itemsInCategory.map(item => (
                                                     <div key={item.id} className={styles.menuItemCard}>
-                                                        <img src={item.imageUrl} alt={item.name} className={styles.itemThumb} onError={(e) => (e.target as HTMLImageElement).src = '/placeholder.jpg'} />
+                                                        {item.imageUrl ? (
+                                                            <img
+                                                                src={item.imageUrl}
+                                                                alt={item.name}
+                                                                className={styles.itemThumb}
+                                                                onError={(e) => {
+                                                                    e.currentTarget.style.display = 'none';
+                                                                    e.currentTarget.parentElement?.querySelector('.placeholder-thumb')?.classList.remove('hidden');
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div className={styles.itemThumb} style={{ background: '#f8f9fa' }} />
+                                                        )}
                                                         <div className={styles.itemInfo}>
                                                             <h4>{item.name}</h4>
                                                             <p>${item.price}</p>
@@ -1126,9 +1159,16 @@ export default function AdminPage() {
             {/* Order Editing Modal */}
             {editingOrder && (
                 <div className={styles.modalOverlay}>
-                    <div className={styles.modal} style={{ maxWidth: '900px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3>編輯訂單 - 桌號 {editingOrder.tableId}</h3>
+                    <div className={styles.modal} style={{
+                        maxWidth: '1200px',
+                        width: '95vw',
+                        height: '90vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexShrink: 0 }}>
+                            <h3>編輯訂單 - {editingOrder.tableId ? `桌號 ${editingOrder.tableId}` : '新訂單'}</h3>
                             <button
                                 onClick={handleCancelEditOrder}
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}
@@ -1137,11 +1177,11 @@ export default function AdminPage() {
                             </button>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem', flex: 1, overflow: 'hidden', minHeight: 0 }}>
                             {/* 左側：當前品項列表 */}
-                            <div>
-                                <h4 style={{ marginBottom: '1rem', color: '#2d3436' }}>訂單品項</h4>
-                                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+                                <h4 style={{ marginBottom: '1rem', color: '#2d3436', flexShrink: 0 }}>訂單品項</h4>
+                                <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
                                     {editingOrderItems.length === 0 ? (
                                         <p style={{ color: '#999', textAlign: 'center', padding: '2rem' }}>訂單中沒有品項</p>
                                     ) : (
@@ -1159,6 +1199,11 @@ export default function AdminPage() {
                                                 <div style={{ flex: 1 }}>
                                                     <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{item.name}</div>
                                                     <div style={{ fontSize: '0.9rem', color: '#6c757d' }}>${item.price}</div>
+                                                    {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                        <div style={{ fontSize: '0.85rem', color: '#e74c3c', marginTop: '0.25rem' }}>
+                                                            {item.selectedOptions.map(o => o.name).join(', ')}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                     <button
@@ -1229,42 +1274,151 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
-                            {/* 右側：新增品項 */}
-                            <div>
-                                <h4 style={{ marginBottom: '1rem', color: '#2d3436' }}>新增品項</h4>
-                                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                                    {menuItems.filter(item => item.available).map((item) => (
-                                        <div
-                                            key={item.id}
-                                            onClick={() => handleAddItemToEditingOrder(item)}
-                                            style={{
-                                                padding: '0.75rem',
-                                                background: 'white',
-                                                border: '1px solid #e9ecef',
-                                                borderRadius: '8px',
-                                                marginBottom: '0.5rem',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = '#f8f9fa';
-                                                e.currentTarget.style.borderColor = '#3498db';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = 'white';
-                                                e.currentTarget.style.borderColor = '#e9ecef';
-                                            }}
-                                        >
-                                            <div>
-                                                <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{item.name}</div>
-                                                <div style={{ fontSize: '0.85rem', color: '#6c757d' }}>{item.category}</div>
+                            {/* 右側：新增品項 - 分類滾動模式 */}
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <h4 style={{ marginBottom: '0.75rem', color: '#2d3436' }}>新增品項</h4>
+
+                                    {/* 分類導航按鈕 - 點擊滾動至頂 */}
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '0.5rem',
+                                        overflowX: 'auto',
+                                        paddingBottom: '0.5rem',
+                                        marginBottom: '0.75rem',
+                                        scrollbarWidth: 'thin'
+                                    }}>
+                                        {CATEGORIES.map(cat => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => {
+                                                    const element = document.getElementById(`menu-category-${cat}`);
+                                                    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                }}
+                                                style={{
+                                                    padding: '0.4rem 0.8rem',
+                                                    borderRadius: '20px',
+                                                    border: '1px solid #e1e8ed',
+                                                    background: 'white',
+                                                    color: '#6c757d',
+                                                    cursor: 'pointer',
+                                                    whiteSpace: 'nowrap',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: '500',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.borderColor = '#667eea';
+                                                    e.currentTarget.style.color = '#667eea';
+                                                    e.currentTarget.style.background = '#f8f9ff';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.borderColor = '#e1e8ed';
+                                                    e.currentTarget.style.color = '#6c757d';
+                                                    e.currentTarget.style.background = 'white';
+                                                }}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* 餐點列表 - 按分類分組 */}
+                                <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+                                    {CATEGORIES.map(category => {
+                                        const itemsInCategory = menuItems.filter(item => item.available && item.category === category);
+                                        if (itemsInCategory.length === 0) return null;
+
+                                        return (
+                                            <div key={category} id={`menu-category-${category}`} style={{ marginBottom: '1.5rem' }}>
+                                                <h5 style={{
+                                                    margin: '0 0 0.75rem 0',
+                                                    color: '#2d3436',
+                                                    fontSize: '0.95rem',
+                                                    fontWeight: '700',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    background: 'white',
+                                                    padding: '0.5rem 0',
+                                                    zIndex: 5,
+                                                    borderBottom: '1px solid #f1f2f6'
+                                                }}>
+                                                    {category}
+                                                </h5>
+                                                <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(3, 1fr)',
+                                                    gap: '0.5rem'
+                                                }}>
+                                                    {itemsInCategory.map((item) => (
+                                                        <div
+                                                            key={item.id}
+                                                            onClick={() => handleAddItemToEditingOrder(item)}
+                                                            style={{
+                                                                padding: '0.5rem',
+                                                                background: 'white',
+                                                                border: '1px solid #e9ecef',
+                                                                borderRadius: '6px',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                justifyContent: 'space-between',
+                                                                height: '100%',
+                                                                minHeight: '70px'
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#f8f9fa';
+                                                                e.currentTarget.style.borderColor = '#3498db';
+                                                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = 'white';
+                                                                e.currentTarget.style.borderColor = '#e9ecef';
+                                                                e.currentTarget.style.transform = 'none';
+                                                                e.currentTarget.style.boxShadow = 'none';
+                                                            }}
+                                                        >
+                                                            <div style={{
+                                                                fontWeight: '600',
+                                                                fontSize: '0.9rem',
+                                                                color: '#2d3436',
+                                                                marginBottom: '0.25rem',
+                                                                lineHeight: '1.2'
+                                                            }}>
+                                                                {item.name}
+                                                            </div>
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                marginTop: 'auto'
+                                                            }}>
+                                                                <span style={{ fontWeight: '700', color: '#ff7675', fontSize: '0.85rem' }}>
+                                                                    ${item.price}
+                                                                </span>
+                                                                <span style={{
+                                                                    background: '#00b894',
+                                                                    color: 'white',
+                                                                    borderRadius: '50%',
+                                                                    width: '20px',
+                                                                    height: '20px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    fontSize: '12px'
+                                                                }}>
+                                                                    <Plus size={12} />
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div style={{ fontWeight: '600', color: '#2ecc71' }}>${item.price}</div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

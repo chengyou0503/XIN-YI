@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Initialize LIFF
-        const initLiff = async () => {
+        const initLiff = async (retryCount = 0) => {
             try {
                 const liffId = (process.env.NEXT_PUBLIC_LINE_LIFF_ID || '').trim();
                 if (!liffId) {
@@ -67,25 +67,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                     if (!isAdminPage) {
                         console.log('🔄 自動觸發 LINE 登入...');
-                        // Automatically trigger login if not logged in on customer pages
-                        // Use window.location.href to preserve query parameters (like table ID)
-                        // But we should strip any existing liff.state or code/state params from OAuth to avoid pollution if needed
-                        // For now, using href is safer than stripping everything
                         liff.login({
                             redirectUri: window.location.href,
                         });
-                        // liff.login will redirect, so no further code in this block will execute
-                        // and setIsLoading(false) will be handled after redirection/re-initialization
                         return;
                     } else {
                         console.log('⏭️  後台頁面，跳過自動登入');
                     }
                 }
             } catch (error) {
-                console.error('LIFF initialization failed', error);
+                console.error(`LIFF initialization failed (Attempt ${retryCount + 1})`, error);
+
+                // Retry logic: try up to 3 times with 1s delay
+                if (retryCount < 2) {
+                    console.log(`Retrying LIFF init in 1 second...`);
+                    setTimeout(() => initLiff(retryCount + 1), 1000);
+                    return; // Don't set error yet
+                }
+
                 setLiffError(error instanceof Error ? error.message : 'Unknown error');
             } finally {
-                setIsLoading(false);
+                // Only set loading to false if we are not retrying
+                if (retryCount >= 2 || !liffError) {
+                    setIsLoading(false);
+                }
             }
         };
 

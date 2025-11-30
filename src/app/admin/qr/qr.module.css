@@ -99,140 +99,148 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
     padding-top: 1rem;
     animation: fadeIn 0.5s ease-out;
 }
 
 .qrCard {
     background-color: white;
-    color: #2d3436;
-    padding: 2rem;
-    border-radius: 24px;
+    border-radius: 16px;
+    /* overflow: hidden; Removed to prevent clipping */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dfe6e9;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.02);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s;
+    position: relative;
+    height: 100%;
+    /* Fill grid cell */
+    min-height: 480px;
+    /* Ensure minimum height */
 }
 
 .qrCard:hover {
     transform: translateY(-4px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
 }
 
-.tableTitle {
-    font-size: 1.5rem;
+/* Card Header - Red Section */
+.cardHeader {
+    background-color: #c0392b;
+    /* Red */
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: white;
+    position: relative;
+    border-bottom: 4px solid #a93226;
+    /* Darker Red */
+    border-radius: 16px 16px 0 0;
+    /* Add radius manually since overflow is gone */
+}
+
+.scanTitle {
+    font-size: 1.8rem;
     font-weight: 800;
-    margin-bottom: 1.5rem;
-    color: #2d3436;
+    letter-spacing: 4px;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.qrWrapper {
-    margin-bottom: 1.5rem;
+.slogan {
+    font-size: 0.9rem;
+    color: #ffeaa7;
+    /* Yellow/Orange */
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
+}
+
+.storeName {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Card Body - White Section */
+.cardBody {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 1rem;
-    border: 2px dashed #dfe6e9;
-    border-radius: 16px;
-    background: white;
+    /* Reduced padding */
+    background-color: white;
 }
 
 .qrImage {
     width: 180px;
     height: 180px;
     display: block;
-}
-
-.instruction {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #2d3436;
     margin-bottom: 0.5rem;
 }
 
-.url {
-    font-size: 0.85rem;
-    color: #b2bec3;
-    word-break: break-all;
-    font-family: monospace;
+.tableInfo {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d3436;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.tableNumber {
+    font-size: 2.5rem;
+    color: #c0392b;
+    /* Softer Red */
+    font-weight: 800;
+    line-height: 1;
 }
 
-/* Mobile & Tablet Responsive */
-@media (max-width: 768px) {
-    .container {
-        padding: 1rem;
-    }
-
-    .header {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem;
-        position: relative;
-        top: 0;
-    }
-
-    .title {
-        font-size: 1.2rem;
-        text-align: center;
-    }
-
-    .controls {
-        flex-direction: column;
-        width: 100%;
-        gap: 1rem;
-    }
-
-    .controlLabel {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .input {
-        width: 100px;
-    }
-
-    .printBtn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .backBtn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    .qrCard {
-        padding: 1.5rem;
-    }
-
-    .qrImage {
-        width: 160px;
-        height: 160px;
-    }
+/* Card Footer - Steps */
+.cardFooter {
+    padding: 1rem;
+    border-top: 1px solid #f1f2f6;
+    background-color: white;
+    border-radius: 0 0 16px 16px;
+    /* Add radius manually */
 }
 
+.steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #2d3436;
+    font-weight: 700;
+}
+
+.stepItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+    flex: 1;
+}
+
+.stepArrow {
+    color: #c0392b;
+    /* Softer Red */
+    font-weight: 800;
+}
+
+.stepLabel {
+    white-space: nowrap;
+}
+
+/* Print Styles */
 @media print {
     .container {
-        background-color: white;
+        background: white;
         padding: 0;
     }
 
@@ -242,27 +250,36 @@
 
     .grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 cards per row */
         gap: 20px;
-        padding: 0;
+        padding: 20px;
     }
 
     .qrCard {
         box-shadow: none;
-        border: 2px solid #000;
+        border: 1px solid #ccc;
         break-inside: avoid;
         page-break-inside: avoid;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-radius: 0;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        margin: 0;
+        height: auto;
+        /* Allow auto height for print */
+        min-height: 0;
     }
 
-    .qrCard:hover {
-        transform: none;
+    .cardHeader {
+        background-color: #c0392b !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
     }
 
-    .qrWrapper {
-        border: none;
-        padding: 0;
+    .tableNumber {
+        color: #c0392b !important;
+    }
+
+    .slogan {
+        color: #ffeaa7 !important;
     }
 }

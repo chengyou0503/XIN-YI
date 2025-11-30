@@ -14,35 +14,36 @@ function HomePage() {
   const { user, isLoading, liffError } = useAuth();
 
   useEffect(() => {
-    // If user is already logged in, redirect to menu immediately
-    if (user && !isLoading) {
-      const targetUrl = table ? `/menu?table=${table}` : '/menu';
-      console.log('👤 User logged in, redirecting to:', targetUrl);
-      router.push(targetUrl);
-      return;
-    }
-
-    // Redirect with table parameter - reduced delay for faster loading
-    if (table) {
-      const timer = setTimeout(() => {
-        router.push(`/menu?table=${table}`);
-      }, 100); // Reduced from 500ms to 100ms
-      return () => clearTimeout(timer);
-    }
-
-    // Fallback: Check for liff.state
+    // 1. Check for liff.state (Highest Priority - from QR Code)
     const liffState = searchParams.get('liff.state');
     if (liffState) {
-      console.log('🔍 Detected liff.state, waiting for LIFF redirect...');
+      console.log('🔍 Detected liff.state, processing redirect...');
       try {
         const decodedPath = decodeURIComponent(liffState);
         if (decodedPath.startsWith('/')) {
           console.log('🔄 Manually redirecting to:', decodedPath);
-          router.push(decodedPath);
+          router.replace(decodedPath); // Use replace to avoid history stack buildup
+          return;
         }
       } catch (e) {
         console.error('Failed to parse liff.state', e);
       }
+    }
+
+    // 2. Check table param (High Priority - Direct Access)
+    if (table) {
+      // Immediate redirect, no delay
+      console.log('📍 Table detected, redirecting immediately...');
+      router.replace(`/menu?table=${table}`);
+      return;
+    }
+
+    // 3. If user is already logged in, redirect to menu
+    if (user && !isLoading) {
+      const targetUrl = '/menu';
+      console.log('👤 User logged in, redirecting to:', targetUrl);
+      router.replace(targetUrl);
+      return;
     }
   }, [router, table, searchParams, user, isLoading]);
 
@@ -80,6 +81,7 @@ function HomePage() {
             width={120}
             height={120}
             priority
+            unoptimized // Bypass optimization for reliability
             style={{ borderRadius: '12px' }}
           />
         </div>

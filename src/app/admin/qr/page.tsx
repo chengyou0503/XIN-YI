@@ -6,14 +6,13 @@ import { useRouter } from 'next/navigation';
 import styles from './qr.module.css';
 
 export default function QrPage() {
-    const [tableCount, setTableCount] = useState(12);
+    // 固定桌號：1, 2, 3, 5, 6, 7, 8, 10, 12
+    const tables = [1, 2, 3, 5, 6, 7, 8, 10, 12];
     const router = useRouter();
     // 使用生產環境 URL，避免生成 localhost QR code
     const baseUrl = typeof window !== 'undefined'
         ? window.location.origin
         : (process.env.NEXT_PUBLIC_BASE_URL || 'https://xin-yi-pos.vercel.app');
-
-    const tables = Array.from({ length: tableCount }, (_, i) => i + 1);
 
     const handlePrint = () => {
         window.print();
@@ -31,17 +30,9 @@ export default function QrPage() {
                 </button>
                 <h1 className={styles.title}>桌號 QR Code 產生器</h1>
                 <div className={styles.controls}>
-                    <label className={styles.controlLabel}>
-                        桌數設定:
-                        <input
-                            type="number"
-                            value={tableCount}
-                            onChange={(e) => setTableCount(Number(e.target.value))}
-                            className={styles.input}
-                            min="1"
-                            max="50"
-                        />
-                    </label>
+                    <div className={styles.controlLabel} style={{ marginRight: '1rem', fontWeight: 'bold', color: '#2d3436' }}>
+                        固定桌號: 1, 2, 3, 5, 6, 7, 8, 10, 12
+                    </div>
                     <button onClick={handlePrint} className={styles.printBtn}>
                         <Printer size={20} />
                         列印 QR Codes
@@ -60,17 +51,47 @@ export default function QrPage() {
 
                     return (
                         <div key={tableId} className={styles.qrCard}>
-                            <h2 className={styles.tableTitle}>桌號 {tableId}</h2>
-                            <div className={styles.qrWrapper}>
+                            {/* Header */}
+                            <div className={styles.cardHeader}>
+                                <h2 className={styles.scanTitle}>掃描點餐</h2>
+                                <div className={styles.slogan}>掃碼五秒鐘 省你五分鐘</div>
+                                <h3 className={styles.storeName}>新易現炒</h3>
+                            </div>
+
+                            {/* Body */}
+                            <div className={styles.cardBody}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`}
+                                    src={`https://quickchart.io/qr?text=${encodeURIComponent(qrData)}&size=300&dark=c0392b&ecLevel=H&margin=1`}
                                     alt={`桌號 ${tableId} QR Code`}
                                     className={styles.qrImage}
                                 />
+                                <div className={styles.tableInfo}>
+                                    <span>桌號:</span>
+                                    <span className={styles.tableNumber}>{tableId}</span>
+                                </div>
                             </div>
-                            <p className={styles.instruction}>請使用 LINE 掃描點餐</p>
-                            <p className={styles.url}>桌號: {tableId}</p>
+
+                            {/* Footer - Steps */}
+                            <div className={styles.cardFooter}>
+                                <div className={styles.steps}>
+                                    <div className={styles.stepItem}>
+                                        <span className={styles.stepLabel}>掃碼</span>
+                                    </div>
+                                    <span className={styles.stepArrow}>➜</span>
+                                    <div className={styles.stepItem}>
+                                        <span className={styles.stepLabel}>選擇餐點</span>
+                                    </div>
+                                    <span className={styles.stepArrow}>➜</span>
+                                    <div className={styles.stepItem}>
+                                        <span className={styles.stepLabel}>櫃檯結帳</span>
+                                    </div>
+                                    <span className={styles.stepArrow}>➜</span>
+                                    <div className={styles.stepItem}>
+                                        <span className={styles.stepLabel}>等待餐點</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     );
                 })}

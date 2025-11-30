@@ -747,10 +747,49 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Hide QR Code button on tablet and larger screens */
-@media(min-width: 768px) {
-    .qrBtn:first-child {
-        display: none;
+/* Hide QR Code button by default (Mobile/Tablet) */
+.headerActions>button:first-child {
+    display: none;
+}
+
+/* Show QR Code button only on Desktop */
+@media(min-width: 1280px) {
+    .headerActions>button:first-child {
+        display: flex;
+    }
+}
+
+/* Responsive Header Adjustments */
+@media (max-width: 1280px) {
+    .header {
+        padding: 0.8rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .title {
+        font-size: 1.2rem;
+    }
+
+    .headerActions {
+        margin-left: 0;
+        order: 2;
+        /* Move actions to the end if wrapped */
+    }
+
+    .nav {
+        order: 3;
+        /* Ensure nav is last or adjust as needed */
+        width: 100%;
+        overflow-x: auto;
+        /* Allow scrolling if nav is too wide */
+        padding-bottom: 4px;
+        /* Space for scrollbar */
+    }
+
+    .navBtn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
     }
 }
 
