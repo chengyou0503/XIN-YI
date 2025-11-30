@@ -748,16 +748,10 @@
 }
 
 /* Hide QR Code button by default (Mobile/Tablet) */
-.headerActions>button:first-child {
-    display: none;
-}
+/* Removed to show New Order button on all devices */
 
 /* Show QR Code button only on Desktop */
-@media(min-width: 1280px) {
-    .headerActions>button:first-child {
-        display: flex;
-    }
-}
+/* Removed */
 
 /* Responsive Header Adjustments */
 @media (max-width: 1280px) {

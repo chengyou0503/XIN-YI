@@ -43,6 +43,7 @@ export default function AdminPage() {
     const [selectedItemForOptions, setSelectedItemForOptions] = useState<MenuItem | null>(null);
     const [isCreatingOrder, setIsCreatingOrder] = useState(false);
     const [newOrderTableId, setNewOrderTableId] = useState('');
+    const [selectedAddCategory, setSelectedAddCategory] = useState<string>(CATEGORIES[0]);
     const playNotificationSound = () => {
         console.log('🔔 嘗試播放通知音效...');
 
@@ -641,6 +642,11 @@ export default function AdminPage() {
                                             <div style={{ display: 'flex', alignItems: 'center' }}>
                                                 <span className={styles.itemQty}>{item.quantity}x</span>
                                                 {item.name}
+                                                {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                    <div style={{ fontSize: '0.85rem', color: '#e74c3c', marginLeft: '0.5rem' }}>
+                                                        {item.selectedOptions.map(o => o.name).join(', ')}
+                                                    </div>
+                                                )}
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                 <span>${item.price * item.quantity}</span>
@@ -1274,12 +1280,12 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
-                            {/* 右側：新增品項 - 分類滾動模式 */}
+                            {/* 右側：新增品項 - 分類篩選模式 */}
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
                                 <div style={{ marginBottom: '1rem' }}>
                                     <h4 style={{ marginBottom: '0.75rem', color: '#2d3436' }}>新增品項</h4>
 
-                                    {/* 分類導航按鈕 - 點擊滾動至頂 */}
+                                    {/* 分類導航按鈕 - 點擊切換分類 */}
                                     <div style={{
                                         display: 'flex',
                                         gap: '0.5rem',
@@ -1291,31 +1297,18 @@ export default function AdminPage() {
                                         {CATEGORIES.map(cat => (
                                             <button
                                                 key={cat}
-                                                onClick={() => {
-                                                    const element = document.getElementById(`menu-category-${cat}`);
-                                                    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                                }}
+                                                onClick={() => setSelectedAddCategory(cat)}
                                                 style={{
                                                     padding: '0.4rem 0.8rem',
                                                     borderRadius: '20px',
-                                                    border: '1px solid #e1e8ed',
-                                                    background: 'white',
-                                                    color: '#6c757d',
+                                                    border: `1px solid ${selectedAddCategory === cat ? '#667eea' : '#e1e8ed'}`,
+                                                    background: selectedAddCategory === cat ? '#f8f9ff' : 'white',
+                                                    color: selectedAddCategory === cat ? '#667eea' : '#6c757d',
                                                     cursor: 'pointer',
                                                     whiteSpace: 'nowrap',
                                                     fontSize: '0.85rem',
                                                     fontWeight: '500',
                                                     transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.borderColor = '#667eea';
-                                                    e.currentTarget.style.color = '#667eea';
-                                                    e.currentTarget.style.background = '#f8f9ff';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.borderColor = '#e1e8ed';
-                                                    e.currentTarget.style.color = '#6c757d';
-                                                    e.currentTarget.style.background = 'white';
                                                 }}
                                             >
                                                 {cat}
@@ -1324,14 +1317,21 @@ export default function AdminPage() {
                                     </div>
                                 </div>
 
-                                {/* 餐點列表 - 按分類分組 */}
+                                {/* 餐點列表 - 僅顯示選中分類 */}
                                 <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-                                    {CATEGORIES.map(category => {
-                                        const itemsInCategory = menuItems.filter(item => item.available && item.category === category);
-                                        if (itemsInCategory.length === 0) return null;
+                                    {(() => {
+                                        const itemsInCategory = menuItems.filter(item => item.available && item.category === selectedAddCategory);
+
+                                        if (itemsInCategory.length === 0) {
+                                            return (
+                                                <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
+                                                    此分類暫無品項
+                                                </div>
+                                            );
+                                        }
 
                                         return (
-                                            <div key={category} id={`menu-category-${category}`} style={{ marginBottom: '1.5rem' }}>
+                                            <div style={{ marginBottom: '1.5rem' }}>
                                                 <h5 style={{
                                                     margin: '0 0 0.75rem 0',
                                                     color: '#2d3436',
@@ -1344,7 +1344,7 @@ export default function AdminPage() {
                                                     zIndex: 5,
                                                     borderBottom: '1px solid #f1f2f6'
                                                 }}>
-                                                    {category}
+                                                    {selectedAddCategory}
                                                 </h5>
                                                 <div style={{
                                                     display: 'grid',
@@ -1418,7 +1418,7 @@ export default function AdminPage() {
                                                 </div>
                                             </div>
                                         );
-                                    })}
+                                    })()}
                                 </div>
                             </div>
                         </div>
