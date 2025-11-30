@@ -747,11 +747,12 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Hide QR Code button by default (Mobile/Tablet) */
-/* Removed to show New Order button on all devices */
-
-/* Show QR Code button only on Desktop */
-/* Removed */
+/* Hide QR Code button on Mobile and Tablet */
+@media (max-width: 1280px) {
+    .qrBtn:nth-child(2) {
+        display: none;
+    }
+}
 
 /* Responsive Header Adjustments */
 @media (max-width: 1280px) {
