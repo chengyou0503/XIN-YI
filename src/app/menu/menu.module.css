@@ -90,12 +90,19 @@
     /* Add background */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    position: sticky;
+    position: relative;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.fixedNav {
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    animation: slideDown 0.3s ease-out;
 }
 
 .categoryNav::-webkit-scrollbar {

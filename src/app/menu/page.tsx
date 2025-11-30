@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/lib/mockData';
@@ -350,6 +350,29 @@ function MenuPage() {
 
     // Remove toggleOption, toggleGroupOption, handleConfirmOptions
 
+    // Sticky Nav Logic
+    const [isNavFixed, setIsNavFixed] = useState(false);
+    const navRef = useRef<HTMLDivElement>(null);
+    const [navHeight, setNavHeight] = useState(0);
+
+    useEffect(() => {
+        if (navRef.current) {
+            setNavHeight(navRef.current.offsetHeight);
+        }
+
+        const handleScroll = () => {
+            const headerHeight = 80; // Approximate header height
+            if (window.scrollY > headerHeight) {
+                setIsNavFixed(true);
+            } else {
+                setIsNavFixed(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
         <div className={styles.container}>
             {/* Announcement Modal */}
@@ -390,7 +413,11 @@ function MenuPage() {
             </header>
 
             {/* Category Navigation */}
-            <nav className={styles.categoryNav}>
+            {isNavFixed && <div style={{ height: navHeight }} />} {/* Placeholder to prevent layout shift */}
+            <nav
+                ref={navRef}
+                className={`${styles.categoryNav} ${isNavFixed ? styles.fixedNav : ''}`}
+            >
                 {categories.map(category => (
                     <button
                         key={category}
