@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 
 const COLLECTIONS = {
-    MENU: 'menu',
+    MENU: 'menuItems',
     ORDERS: 'orders',
     CATEGORIES: 'categories',
     ANNOUNCEMENTS: 'announcements',
