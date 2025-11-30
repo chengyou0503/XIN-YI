@@ -1275,7 +1275,7 @@ export default function AdminPage() {
                             </div>
 
                             {/* 右側：新增品項 - 分類滾動模式 */}
-                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
                                 <div style={{ marginBottom: '1rem' }}>
                                     <h4 style={{ marginBottom: '0.75rem', color: '#2d3436' }}>新增品項</h4>
 
