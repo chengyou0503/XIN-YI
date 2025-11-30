@@ -150,11 +150,14 @@
     font-weight: 800;
     color: #2d3436;
     margin-bottom: 1.5rem;
-    padding-left: 1rem;
+    padding: 0.75rem 1rem;
     border-left: 6px solid #ff7675;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe9e9 100%);
+    border-radius: 0 8px 8px 0;
     line-height: 1.2;
     display: flex;
     align-items: center;
+    box-shadow: 0 2px 8px rgba(255, 118, 117, 0.15);
 }
 
 .menuGrid {
