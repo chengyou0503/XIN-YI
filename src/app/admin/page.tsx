@@ -922,18 +922,14 @@ export default function AdminPage() {
                                                                         style={{ flex: 1 }}
                                                                     />
                                                                     <input
-                                                                        type="text"
-                                                                        inputMode="numeric"
+                                                                        type="number"
                                                                         placeholder="價格"
                                                                         value={option.price === 0 ? '' : option.price}
                                                                         onChange={(e) => {
                                                                             const newGroups = [...(editingItem.optionGroups || [])];
                                                                             const value = e.target.value;
-                                                                            // Allow empty string or valid numbers
-                                                                            if (value === '' || /^\d+$/.test(value)) {
-                                                                                newGroups[groupIdx].options[optIdx].price = value === '' ? 0 : Number(value);
-                                                                                setEditingItem({ ...editingItem, optionGroups: newGroups });
-                                                                            }
+                                                                            newGroups[groupIdx].options[optIdx].price = value === '' ? 0 : Number(value);
+                                                                            setEditingItem({ ...editingItem, optionGroups: newGroups });
                                                                         }}
                                                                         style={{ width: '80px' }}
                                                                     />
