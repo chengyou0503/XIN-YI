@@ -558,7 +558,7 @@ function MenuPage() {
                                                 <h4>{item.name}</h4>
                                                 {item.selectedOptions && item.selectedOptions.length > 0 && (
                                                     <small className={styles.cartItemOptions}>
-                                                        {item.selectedOptions.map(o => o.name).join(', ')}
+                                                        {item.selectedOptions.map(o => `${o.name}${o.price > 0 ? ` (+$${o.price})` : ''}`).join(', ')}
                                                     </small>
                                                 )}
                                                 <span>${item.price + (item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0)}</span>
@@ -645,7 +645,7 @@ function MenuPage() {
                                                     <div style={{ paddingLeft: '1.5rem', fontSize: '0.85rem', color: '#636e72' }}>
                                                         {item.selectedOptions.map((opt, optIdx) => (
                                                             <div key={optIdx} style={{ marginTop: '0.25rem' }}>
-                                                                • {opt.name} (+${opt.price})
+                                                                • {opt.name} {opt.price > 0 ? `(+$${opt.price})` : ''}
                                                             </div>
                                                         ))}
                                                     </div>
@@ -733,7 +733,7 @@ function MenuPage() {
                                                     <strong style={{ color: '#ff7675' }}>{item.quantity}x</strong> {item.name}
                                                     {item.selectedOptions && item.selectedOptions.length > 0 && (
                                                         <span style={{ color: '#636e72', fontSize: '0.85rem', display: 'block', marginLeft: '2rem' }}>
-                                                            {item.selectedOptions.map(opt => opt.name).join(', ')}
+                                                            {item.selectedOptions.map(opt => `${opt.name}${opt.price > 0 ? ` (+$${opt.price})` : ''}`).join(', ')}
                                                         </span>
                                                     )}
                                                 </span>

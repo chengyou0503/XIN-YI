@@ -646,7 +646,7 @@ export default function AdminPage() {
                                                 {item.name}
                                                 {item.selectedOptions && item.selectedOptions.length > 0 && (
                                                     <div style={{ fontSize: '0.85rem', color: '#e74c3c', marginLeft: '0.5rem' }}>
-                                                        {item.selectedOptions.map(o => o.name).join(', ')}
+                                                        {item.selectedOptions.map(o => `${o.name}${o.price > 0 ? ` (+$${o.price})` : ''}`).join(', ')}
                                                     </div>
                                                 )}
                                             </div>
