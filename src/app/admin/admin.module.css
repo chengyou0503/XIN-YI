@@ -1378,17 +1378,24 @@
 
 /* Option Groups Management */
 .optionGroupsSection {
-    margin-top: 1rem;
-    border-top: 1px solid #f1f2f6;
-    padding-top: 1rem;
+    margin-top: 1.5rem;
+    border-top: 2px solid #e9ecef;
+    padding-top: 1.5rem;
 }
 
 .optionGroupCard {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s;
+}
+
+.optionGroupCard:hover {
+    border-color: #3498db;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
 }
 
 .groupHeader {
@@ -1397,68 +1404,130 @@
     align-items: flex-start;
     margin-bottom: 1rem;
     gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f2f6;
 }
 
 .groupInputs {
     flex: 1;
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 0.5rem;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.groupInputs input,
+.groupInputs select {
+    padding: 0.75rem 1rem;
+    border: 1.5px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.groupInputs input:focus,
+.groupInputs select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .groupOptionsList {
-    background: white;
-    border-radius: 8px;
-    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
     border: 1px solid #e9ecef;
 }
 
 .groupOptionItem {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
     align-items: center;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s;
+}
+
+.groupOptionItem:hover {
+    border-color: #cbd5e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.groupOptionItem:last-child {
+    margin-bottom: 0;
+}
+
+.groupOptionItem input {
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.groupOptionItem input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.groupOptionItem button {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
 .removeGroupBtn {
-    background: #ffeaa7;
-    color: #d63031;
-    border: none;
+    background: #fff5f5;
+    color: #e74c3c;
+    border: 1.5px solid #fecaca;
     border-radius: 8px;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
+    flex-shrink: 0;
 }
 
 .removeGroupBtn:hover {
-    background: #ff7675;
+    background: #e74c3c;
     color: white;
+    border-color: #e74c3c;
+    transform: scale(1.05);
 }
 
 .addGroupBtn {
     width: 100%;
-    padding: 0.8rem;
-    background: #dfe6e9;
-    color: #2d3436;
-    border: 2px dashed #b2bec3;
+    \n padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
     border-radius: 12px;
     font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .addGroupBtn:hover {
-    background: #b2bec3;
-    color: white;
-    border-color: #636e72;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
 /* Tablet Optimization (768px - 1024px) */
