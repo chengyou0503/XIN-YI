@@ -105,14 +105,11 @@ export default function AdminPage() {
 
         // Subscribe to real-time menu updates
         const unsubscribeMenu = StorageService.subscribeToMenu((newMenu) => {
-            // 安全檢查：只有在 Firestore 有合理數量的資料時才更新
-            // 避免不完整的資料覆蓋本地完整的 MENU_DATA (104 項)
-            if (newMenu && newMenu.length >= 100) {
+            if (newMenu && newMenu.length > 0) {
                 console.log(`📋 Firebase 菜單同步完成，更新 ${newMenu.length} 項`);
                 setMenuItems(newMenu);
-            } else if (newMenu && newMenu.length > 0 && newMenu.length < 100) {
-                console.warn(`⚠️ Firebase 菜單不完整（僅 ${newMenu.length} 項），保留本地 ${menuItems.length} 項資料`);
-                console.warn('⚠️ 建議手動重新初始化菜單');
+            } else {
+                console.log('⚠️ Firebase 菜單為空，使用本地預設資料');
             }
             setIsLoadingMenu(false);
         });
@@ -1268,7 +1265,7 @@ export default function AdminPage() {
                                                     <div style={{ fontSize: '0.9rem', color: '#6c757d' }}>${item.price}</div>
                                                     {item.selectedOptions && item.selectedOptions.length > 0 && (
                                                         <div style={{ fontSize: '0.85rem', color: '#e74c3c', marginTop: '0.25rem' }}>
-                                                            {item.selectedOptions.map(o => o.name).join(', ')}
+                                                            {item.selectedOptions.map(o => `${o.name}${o.price > 0 ? ` (+$${o.price})` : ''}`).join(', ')}
                                                         </div>
                                                     )}
                                                 </div>
