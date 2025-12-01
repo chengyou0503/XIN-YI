@@ -687,7 +687,24 @@ export default function AdminPage() {
                         ))}
                     </div>
                 )}
-
+                import {
+                    LayoutDashboard,
+                    ClipboardList,
+                    Utensils,
+                    Settings,
+                    LogOut,
+                    Plus,
+                    Minus,
+                    Trash2,
+                    Edit,
+                    X,
+                    ChevronDown,
+                    ChevronUp,
+                    Search,
+                    Bell,
+                    DollarSign,
+                    Image as ImageIcon
+                } from 'lucide-react';
                 {activeTab === 'kitchen' && (
                     <div className={styles.kitchenView}>
                         {activeOrders.filter(o => o.status === 'cooking').length === 0 && (
