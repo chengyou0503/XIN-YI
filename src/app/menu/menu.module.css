@@ -232,8 +232,8 @@
 
 .itemHeader {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
     margin-bottom: 0.5rem;
 }
 
