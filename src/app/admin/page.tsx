@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Order, MenuItem, CategoryItem } from '@/types';
-import { Plus, Edit, Trash2, Upload, Save, X, Utensils, LogOut, QrCode, CheckCircle, DollarSign, ChefHat, Megaphone } from 'lucide-react';
+import {
+    Plus, Edit, Trash2, Upload, Save, X, Utensils, LogOut, QrCode, CheckCircle, DollarSign, ChefHat, Megaphone,
+    LayoutDashboard, ClipboardList, Settings, Minus, ChevronDown, ChevronUp, Search, Bell, Image as ImageIcon
+} from 'lucide-react';
 import { StorageService } from '@/lib/storage';
 import { ImageUploadService } from '@/lib/imageUpload';
 import { MENU_DATA } from '@/lib/menuData'; // Import local data for instant load
@@ -693,53 +696,41 @@ export default function AdminPage() {
                     Utensils,
                     Settings,
                     LogOut,
-                    Plus,
-                    Minus,
-                    Trash2,
-                    Edit,
-                    X,
-                    ChevronDown,
-                    ChevronUp,
-                    Search,
-                    Bell,
-                    DollarSign,
-                    Image as ImageIcon
-                } from 'lucide-react';
-                {activeTab === 'kitchen' && (
-                    <div className={styles.kitchenView}>
-                        {activeOrders.filter(o => o.status === 'cooking').length === 0 && (
-                            <p style={{ width: '100%', textAlign: 'center', color: '#999', padding: '2rem' }}>廚房目前空閒中</p>
-                        )}
-                        {activeOrders.filter(o => o.status === 'cooking').map(order => (
-                            <div key={order.id} className={styles.kitchenTicket}>
-                                <div className={styles.ticketHeader}>
-                                    <span>桌號 {order.tableId}</span>
-                                    <span className={styles.time}>
-                                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
+                    { activeTab === 'kitchen' && (
+                        <div className={styles.kitchenView}>
+                            {activeOrders.filter(o => o.status === 'cooking').length === 0 && (
+                                <p style={{ width: '100%', textAlign: 'center', color: '#999', padding: '2rem' }}>廚房目前空閒中</p>
+                            )}
+                            {activeOrders.filter(o => o.status === 'cooking').map(order => (
+                                <div key={order.id} className={styles.kitchenTicket}>
+                                    <div className={styles.ticketHeader}>
+                                        <span>桌號 {order.tableId}</span>
+                                        <span className={styles.time}>
+                                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
+                                    <ul className={styles.ticketItems}>
+                                        {order.items.map((item, idx) => (
+                                            <li key={idx}>
+                                                <span className={styles.qty}>{item.quantity}</span>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span className={styles.name}>{item.name}</span>
+                                                    {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                        <small style={{ color: '#e74c3c', fontSize: '0.9rem' }}>
+                                                            {item.selectedOptions.map(o => o.name).join(', ')}
+                                                        </small>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <button className={styles.cookBtn} onClick={() => updateStatus(order.id, 'served')}>
+                                        <CheckCircle size={20} /> 完成上菜
+                                    </button>
                                 </div>
-                                <ul className={styles.ticketItems}>
-                                    {order.items.map((item, idx) => (
-                                        <li key={idx}>
-                                            <span className={styles.qty}>{item.quantity}</span>
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <span className={styles.name}>{item.name}</span>
-                                                {item.selectedOptions && item.selectedOptions.length > 0 && (
-                                                    <small style={{ color: '#e74c3c', fontSize: '0.9rem' }}>
-                                                        {item.selectedOptions.map(o => o.name).join(', ')}
-                                                    </small>
-                                                )}
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <button className={styles.cookBtn} onClick={() => updateStatus(order.id, 'served')}>
-                                    <CheckCircle size={20} /> 完成上菜
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
 
                 {activeTab === 'menu' && (
                     <div className={styles.menuManagement}>
