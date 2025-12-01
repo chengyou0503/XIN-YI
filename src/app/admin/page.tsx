@@ -225,7 +225,7 @@ export default function AdminPage() {
                 // 直接從 Firestore 刪除該項目，而不是覆蓋整個菜單
                 const { db } = await import('@/lib/firebaseConfig');
                 const { doc, deleteDoc } = await import('firebase/firestore');
-                await deleteDoc(doc(db, 'menu', id));
+                await deleteDoc(doc(db, 'menuItems', id));
 
                 console.log('✅ 餐點已刪除:', id);
             } catch (error) {
