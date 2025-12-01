@@ -1070,18 +1070,19 @@ export default function AdminPage() {
                                             }}>
                                                 {itemsInCategory.map(item => (
                                                     <div key={item.id} className={styles.menuItemCard}>
-                                                        {item.imageUrl ? (
+                                                        {item.imageUrl && item.imageUrl !== '/placeholder.jpg' ? (
                                                             <img
                                                                 src={item.imageUrl}
                                                                 alt={item.name}
                                                                 className={styles.itemThumb}
                                                                 onError={(e) => {
                                                                     e.currentTarget.style.display = 'none';
-                                                                    e.currentTarget.parentElement?.querySelector('.placeholder-thumb')?.classList.remove('hidden');
                                                                 }}
                                                             />
                                                         ) : (
-                                                            <div className={styles.itemThumb} style={{ background: '#f8f9fa' }} />
+                                                            <div className={styles.itemThumb} style={{ background: '#f1f2f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                <ImageIcon size={24} color="#dfe6e9" />
+                                                            </div>
                                                         )}
                                                         <div className={styles.itemInfo}>
                                                             <h4>{item.name}</h4>
