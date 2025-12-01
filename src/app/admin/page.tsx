@@ -738,6 +738,13 @@ export default function AdminPage() {
                                 <button className={styles.secondaryBtn} onClick={() => setIsManagingCategories(true)}>
                                     <Utensils size={18} /> 管理分類
                                 </button>
+                                <button
+                                    className={styles.secondaryBtn}
+                                    onClick={handleResetMenu}
+                                    style={{ color: '#e74c3c', borderColor: '#e74c3c', backgroundColor: '#fff5f5' }}
+                                >
+                                    <Trash2 size={18} /> 重置預設菜單
+                                </button>
                                 <button className={styles.addBtn} onClick={startAdd}>
                                     <Plus size={18} /> 新增餐點
                                 </button>
@@ -926,7 +933,7 @@ export default function AdminPage() {
                                                                     <input
                                                                         type="number"
                                                                         placeholder="價格"
-                                                                        value={option.price || ''}
+                                                                        value={option.price ?? ''}
                                                                         onFocus={(e) => e.target.select()}
                                                                         onChange={(e) => {
                                                                             const newGroups = [...(editingItem.optionGroups || [])];
