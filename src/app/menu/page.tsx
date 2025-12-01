@@ -82,7 +82,6 @@ function MenuPage() {
         });
 
         return () => {
-            unsubscribeMenu();
             unsubscribeCategories();
         };
     }, [activeCategory]);
@@ -197,12 +196,18 @@ function MenuPage() {
     };
 
     const addToCart = (item: MenuItem) => {
+        console.log('🛒 添加到購物車:', item.name);
+        console.log('  - 有 optionGroups?', !!item.optionGroups, item.optionGroups?.length || 0);
+        console.log('  - 有 options?', !!item.options, item.options?.length || 0);
+
         // Check for options
         if ((item.optionGroups && item.optionGroups.length > 0) || (item.options && item.options.length > 0)) {
+            console.log('✅ 應該顯示選項彈窗');
             setSelectedItem(item);
             return;
         }
 
+        console.log('❌ 沒有選項，直接加入購物車');
         addItemToCart(item, []);
     };
 
