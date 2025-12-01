@@ -1143,7 +1143,8 @@
     /* Modal */
     .modal {
         padding: 2.5rem;
-        max-width: 600px;
+        max-width: 800px;
+        width: 90%;
     }
 
     .modal h3 {
@@ -1410,10 +1411,31 @@
 
 .groupInputs {
     flex: 1;
-    display: grid;
-    grid-template-columns: 2fr 1fr auto;
+    display: flex;
     gap: 0.75rem;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.groupInputs input[type="text"] {
+    flex: 2;
+    min-width: 150px;
+}
+
+.groupInputs select {
+    flex: 1;
+    min-width: 100px;
+}
+
+.groupInputs label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    font-size: 0.95rem;
+    color: #2d3436;
+    cursor: pointer;
+    user-select: none;
 }
 
 .groupInputs input,
@@ -1444,7 +1466,7 @@
     gap: 0.75rem;
     margin-bottom: 0.75rem;
     align-items: center;
-    padding: 0.5rem;
+    padding: 0.75rem;
     background: white;
     border-radius: 8px;
     border: 1px solid #e9ecef;
@@ -1458,6 +1480,17 @@
 
 .groupOptionItem:last-child {
     margin-bottom: 0;
+}
+
+.groupOptionItem input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    /* 防止溢出 */
+}
+
+.groupOptionItem input[type="number"] {
+    width: 100px;
+    flex-shrink: 0;
 }
 
 .groupOptionItem input {
