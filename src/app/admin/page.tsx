@@ -926,13 +926,21 @@ export default function AdminPage() {
                                                                     <input
                                                                         type="number"
                                                                         placeholder="價格"
-                                                                        value={option.price}
+                                                                        value={option.price || ''}
                                                                         onFocus={(e) => e.target.select()}
                                                                         onChange={(e) => {
                                                                             const newGroups = [...(editingItem.optionGroups || [])];
                                                                             const value = e.target.value;
-                                                                            newGroups[groupIdx].options[optIdx].price = value === '' ? 0 : Number(value);
+                                                                            newGroups[groupIdx].options[optIdx].price = value === '' ? '' as any : Number(value);
                                                                             setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                        }}
+                                                                        onBlur={(e) => {
+                                                                            // Convert empty to 0 on blur
+                                                                            if (e.target.value === '') {
+                                                                                const newGroups = [...(editingItem.optionGroups || [])];
+                                                                                newGroups[groupIdx].options[optIdx].price = 0;
+                                                                                setEditingItem({ ...editingItem, optionGroups: newGroups });
+                                                                            }
                                                                         }}
                                                                         style={{ width: '80px' }}
                                                                         min="0"
@@ -1442,9 +1450,6 @@ export default function AdminPage() {
                                                                 lineHeight: '1.2'
                                                             }}>
                                                                 {item.name}
-                                                                {(item.optionGroups && item.optionGroups.length > 0) && (
-                                                                    <span style={{ fontSize: '0.7rem', color: '#ff7675', marginLeft: '0.25rem' }}>⚙️</span>
-                                                                )}
                                                             </div>
                                                             <div style={{
                                                                 display: 'flex',
