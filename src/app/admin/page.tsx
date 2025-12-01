@@ -401,8 +401,10 @@ export default function AdminPage() {
         }).filter(item => item.quantity > 0));
     };
 
-    const handleRemoveEditingItem = (itemId: string) => {
-        setEditingOrderItems(editingOrderItems.filter(item => item.id !== itemId));
+    const handleRemoveEditingItem = (index: number) => {
+        const newItems = [...editingOrderItems];
+        newItems.splice(index, 1);
+        setEditingOrderItems(newItems);
     };
 
     const handleSaveEditedOrder = async () => {
@@ -925,6 +927,7 @@ export default function AdminPage() {
                                                                         type="number"
                                                                         placeholder="價格"
                                                                         value={option.price}
+                                                                        onFocus={(e) => e.target.select()}
                                                                         onChange={(e) => {
                                                                             const newGroups = [...(editingItem.optionGroups || [])];
                                                                             const value = e.target.value;
@@ -1300,7 +1303,7 @@ export default function AdminPage() {
                                                         +
                                                     </button>
                                                     <button
-                                                        onClick={() => handleRemoveEditingItem(item.id)}
+                                                        onClick={() => handleRemoveEditingItem(idx)}
                                                         style={{
                                                             background: 'none',
                                                             border: 'none',
@@ -1439,6 +1442,9 @@ export default function AdminPage() {
                                                                 lineHeight: '1.2'
                                                             }}>
                                                                 {item.name}
+                                                                {(item.optionGroups && item.optionGroups.length > 0) && (
+                                                                    <span style={{ fontSize: '0.7rem', color: '#ff7675', marginLeft: '0.25rem' }}>⚙️</span>
+                                                                )}
                                                             </div>
                                                             <div style={{
                                                                 display: 'flex',
