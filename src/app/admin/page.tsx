@@ -227,20 +227,7 @@ export default function AdminPage() {
         }
     };
 
-    const handleResetMenu = async () => {
-        if (confirm('⚠️ 警告：這將會清除所有現有的菜單資料，並恢復為 104 項預設菜單。\n\n確定要繼續嗎？')) {
-            try {
-                setIsLoadingMenu(true);
-                await StorageService.initializeMenu();
-                alert('✅ 菜單已重置為預設狀態！');
-                window.location.reload();
-            } catch (error) {
-                console.error('重置菜單失敗:', error);
-                alert('❌ 重置失敗，請檢查 Console log');
-                setIsLoadingMenu(false);
-            }
-        }
-    };
+
 
     const startEdit = (item: MenuItem) => {
         setEditingItem({ ...item });
@@ -745,13 +732,7 @@ export default function AdminPage() {
                                 <button className={styles.secondaryBtn} onClick={() => setIsManagingCategories(true)}>
                                     <Utensils size={18} /> 管理分類
                                 </button>
-                                <button
-                                    className={styles.secondaryBtn}
-                                    onClick={handleResetMenu}
-                                    style={{ color: '#e74c3c', borderColor: '#e74c3c', backgroundColor: '#fff5f5' }}
-                                >
-                                    <Trash2 size={18} /> 重置預設菜單
-                                </button>
+
                                 <button className={styles.addBtn} onClick={startAdd}>
                                     <Plus size={18} /> 新增餐點
                                 </button>
