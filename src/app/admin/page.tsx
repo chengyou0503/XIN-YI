@@ -218,9 +218,26 @@ export default function AdminPage() {
     const handleDeleteItem = async (id: string) => {
         if (confirm('確定要刪除此餐點嗎？')) {
             try {
+                await StorageService.deleteMenuItem(id);
+                console.log('✅ 餐點已刪除:', id);
             } catch (error) {
                 console.error('❌ 刪除餐點失敗:', error);
                 alert('刪除失敗，請重試');
+            }
+        }
+    };
+
+    const handleResetMenu = async () => {
+        if (confirm('⚠️ 警告：這將會清除所有現有的菜單資料，並恢復為 104 項預設菜單。\n\n確定要繼續嗎？')) {
+            try {
+                setIsLoadingMenu(true);
+                await StorageService.initializeMenu();
+                alert('✅ 菜單已重置為預設狀態！');
+                window.location.reload();
+            } catch (error) {
+                console.error('重置菜單失敗:', error);
+                alert('❌ 重置失敗，請檢查 Console log');
+                setIsLoadingMenu(false);
             }
         }
     };
