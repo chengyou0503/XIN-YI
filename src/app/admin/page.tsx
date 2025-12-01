@@ -924,7 +924,7 @@ export default function AdminPage() {
                                                                     <input
                                                                         type="number"
                                                                         placeholder="價格"
-                                                                        value={option.price === 0 ? '' : option.price}
+                                                                        value={option.price}
                                                                         onChange={(e) => {
                                                                             const newGroups = [...(editingItem.optionGroups || [])];
                                                                             const value = e.target.value;
@@ -932,6 +932,7 @@ export default function AdminPage() {
                                                                             setEditingItem({ ...editingItem, optionGroups: newGroups });
                                                                         }}
                                                                         style={{ width: '80px' }}
+                                                                        min="0"
                                                                     />
                                                                     <button
                                                                         type="button"

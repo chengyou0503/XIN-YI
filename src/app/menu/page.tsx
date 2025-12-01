@@ -483,7 +483,7 @@ function MenuPage() {
                                                     </span>
                                                     <button
                                                         className={styles.quantityBtn}
-                                                        onClick={() => addToCart(item)}
+                                                        onClick={() => handleItemClick(item)}
                                                     >
                                                         <Plus size={18} />
                                                     </button>
@@ -492,7 +492,7 @@ function MenuPage() {
                                                 <button
                                                     className={styles.addBtn}
                                                     disabled={!item.available}
-                                                    onClick={() => setSelectedItem(item)}
+                                                    onClick={() => handleItemClick(item)}
                                                 >
                                                     <Plus size={20} />
                                                     加入
