@@ -118,6 +118,15 @@ export class StorageService {
         }
     }
 
+    static async deleteMenuItem(id: string) {
+        try {
+            await deleteDoc(doc(db, COLLECTIONS.MENU, id));
+        } catch (error) {
+            console.error('❌ Firestore 刪除餐點失敗:', error);
+            throw error;
+        }
+    }
+
     static subscribeToMenu(callback: MenuCallback) {
         const q = query(collection(db, COLLECTIONS.MENU));
 
